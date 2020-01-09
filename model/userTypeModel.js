@@ -11,4 +11,4 @@ var userTypeSchema = Mongoose.Schema({
     }
 });
 
-var UserType = module.exports = Mongoose.model('userType', userTypeSchema);
+var UserType = module.exports = Mongoose.model('userType', userTypeSchema, 'userTypes');

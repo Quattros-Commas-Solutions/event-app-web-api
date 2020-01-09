@@ -2,7 +2,7 @@ var Mongoose = require('mongoose');
 
 var eventGroupSchema = Mongoose.Schema({
     eventID: {
-        type: ObjectId,
+        type: Mongoose.Types.ObjectId,
         required: true
     },
     name: {
@@ -15,4 +15,4 @@ var eventGroupSchema = Mongoose.Schema({
     }
 });
 
-var EventGroup = module.exports = Mongoose.model('eventGroup', eventGroupSchema);
+var EventGroup = module.exports = Mongoose.model('eventGroup', eventGroupSchema, 'eventGroups');

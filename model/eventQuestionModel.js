@@ -2,11 +2,11 @@ var Mongoose = require('mongoose');
 
 var eventQuestionSchema = Mongoose.Schema({
     eventID: {
-        type: ObjectId,
+        type: Mongoose.Types.ObjectId,
         required: true
     },
     userID: {
-        type: ObjectId,
+        type: Mongoose.Types.ObjectId,
         required: true
     },
     content: {
@@ -18,4 +18,4 @@ var eventQuestionSchema = Mongoose.Schema({
     }
 });
 
-var EventQuestion = module.exports = Mongoose.model('eventQuestion', eventQuestionSchema);
+var EventQuestion = module.exports = Mongoose.model('eventQuestion', eventQuestionSchema, 'eventQuestions');

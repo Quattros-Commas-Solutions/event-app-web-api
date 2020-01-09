@@ -2,7 +2,7 @@ var Mongoose = require('mongoose');
 
 var userSchema = Mongoose.Schema({
     companyID: {
-        type: ObjectId,
+        type: Mongoose.Types.ObjectId,
         required: true
     },
     name: { 
@@ -38,9 +38,4 @@ var userSchema = Mongoose.Schema({
     }
 });
 
-var User = module.exports = Mongoose.model('user', userSchema);
-
-//Just an example of a simple get function with a limit filter
-module.exports.get = function (callback, limit) {
-    User.find(callback).limit(limit);
-}
+var User = module.exports = Mongoose.model('user', userSchema, 'users');

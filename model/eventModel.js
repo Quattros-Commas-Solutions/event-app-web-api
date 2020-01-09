@@ -2,7 +2,7 @@ var Mongoose = require('mongoose');
 
 var eventSchema = Mongoose.Schema({
     companyID: {
-        type: ObjectId,
+        type: Mongoose.Types.ObjectId,
         required: true
     },
     name: {
@@ -35,4 +35,4 @@ var eventSchema = Mongoose.Schema({
     }
 });
 
-var Event = module.exports = Mongoose.model('event', eventSchema);
+var Event = module.exports = Mongoose.model('event', eventSchema, 'events');

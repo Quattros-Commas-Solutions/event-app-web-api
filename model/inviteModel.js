@@ -2,11 +2,11 @@ var Mongoose = require('mongoose');
 
 var inviteSchema = Mongoose.Schema({
     userID: {
-        type: ObjectId,
+        type: Mongoose.Types.ObjectId,
         required: true
     },
     eventID: {
-        type: ObjectId,
+        type: Mongoose.Types.ObjectId,
         required: true
     },
     responseType:{
@@ -17,4 +17,4 @@ var inviteSchema = Mongoose.Schema({
     qrcode: String
 });
 
-var Invite = module.exports = Mongoose.model('invite', inviteSchema);
+var Invite = module.exports = Mongoose.model('invite', inviteSchema, 'invites');

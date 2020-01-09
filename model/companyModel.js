@@ -12,4 +12,4 @@ var companySchema = Mongoose.Schema({
     logoURL: String
 });
 
-var Company = module.exports = Mongoose.model('company', companySchema);
+var Company = module.exports = Mongoose.model('company', companySchema, 'companies');

@@ -11,4 +11,4 @@ var responseTypeSchema = Mongoose.Schema({
     }
 });
 
-var ResponseType = module.exports = Mongoose.model('responseType', responseTypeSchema);
+var ResponseType = module.exports = Mongoose.model('responseType', responseTypeSchema, 'responseTypes');

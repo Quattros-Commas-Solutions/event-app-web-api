@@ -1,4 +1,5 @@
 const UserType = require('../model/userTypeModel');
+const User = require('../model/userModel');
 
 //Retrieve all user types
 module.exports.getAll = function(req, res){
