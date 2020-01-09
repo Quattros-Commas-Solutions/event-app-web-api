@@ -1,8 +1,7 @@
 const UserType = require('../model/userTypeModel');
 
-//Retrieve all user types
-module.exports.getAll = (req, res) => {
-    UserType.find({}, (err, data) => {
+const getAll = (req, res) => {
+    UserType.find({}, { _id: 0 }, (err, data) => {
         if (err) {
             res.send(err);
         } else {
@@ -12,4 +11,9 @@ module.exports.getAll = (req, res) => {
             });
         }
     });
+};
+
+//Retrieve all user types
+module.exports = {
+    getAll: getAll
 };
