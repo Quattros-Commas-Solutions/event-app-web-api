@@ -3,13 +3,17 @@ const Mongoose = require('mongoose');
 const companySchema = Mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
     location: {
         type: Object,
         required: true
     },
-    logoURL: String
+    logoURL: {
+        type: String,
+        trim: true
+    }
 });
 
 const Company = module.exports = Mongoose.model('company', companySchema, 'companies');
