@@ -1,9 +1,9 @@
-var Mongoose = require('mongoose');
+const Mongoose = require('mongoose');
 
-var userTypeSchema = Mongoose.Schema({
+const userTypeSchema = Mongoose.Schema({
     value: {
         type: Number,
-         required: true
+        required: true
     },
     name: {
         type: String,
@@ -11,4 +11,4 @@ var userTypeSchema = Mongoose.Schema({
     }
 });
 
-var UserType = module.exports = Mongoose.model('userType', userTypeSchema, 'userTypes');
+const UserType = module.exports = Mongoose.model('userType', userTypeSchema, 'userTypes');

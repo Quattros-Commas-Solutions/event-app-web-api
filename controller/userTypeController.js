@@ -1,15 +1,15 @@
 const UserType = require('../model/userTypeModel');
 
 //Retrieve all user types
-module.exports.getAll = function(req, res){
-    UserType.find({}, function (err, data){
-        if(err){
+module.exports.getAll = (req, res) => {
+    UserType.find({}, (err, data) => {
+        if (err) {
             res.send(err);
-        }else{
+        } else {
             res.json({
-                status:'Success',
+                status: 'Success',
                 data: data
             });
         }
-    })
-}
+    });
+};

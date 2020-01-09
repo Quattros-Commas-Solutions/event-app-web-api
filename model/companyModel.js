@@ -1,6 +1,6 @@
-var Mongoose = require('mongoose');
+const Mongoose = require('mongoose');
 
-var companySchema = Mongoose.Schema({
+const companySchema = Mongoose.Schema({
     name: {
         type: String,
         required: true
@@ -12,4 +12,4 @@ var companySchema = Mongoose.Schema({
     logoURL: String
 });
 
-var Company = module.exports = Mongoose.model('company', companySchema, 'companies');
+const Company = module.exports = Mongoose.model('company', companySchema, 'companies');

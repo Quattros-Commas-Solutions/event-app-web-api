@@ -1,6 +1,6 @@
-var Mongoose = require('mongoose');
+const Mongoose = require('mongoose');
 
-var eventQuestionSchema = Mongoose.Schema({
+const eventQuestionSchema = Mongoose.Schema({
     eventID: {
         type: Mongoose.Types.ObjectId,
         required: true
@@ -11,11 +11,11 @@ var eventQuestionSchema = Mongoose.Schema({
     },
     content: {
         type: String,
-         required: true
+        required: true
     },
     responses: {
         type: Array
     }
 });
 
-var EventQuestion = module.exports = Mongoose.model('eventQuestion', eventQuestionSchema, 'eventQuestions');
+const EventQuestion = module.exports = Mongoose.model('eventQuestion', eventQuestionSchema, 'eventQuestions');
