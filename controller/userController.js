@@ -4,6 +4,10 @@ const HttpStatus = require('http-status-codes');
 
 const User = require('../model/userModel');
 const AppConfig = require('../config').AppConfig;
+// TODO: Discuss about the following solution for storing refresh tokens
+// Followed this tutorial https://codeforgeek.com/refresh-token-jwt-nodejs-authentication/
+// Discuss about JWT storage on client side. For Web apps accessToken is stored in Cookie/LocalStorage, what about Mobile apps?
+const tokenList = {}
 
 const login = (req, res) => {
     User.findOne({
@@ -13,11 +17,29 @@ const login = (req, res) => {
         if (user) {
             const saltedPassword = SHA256(req.body.password + user.salt).toString();
             if (saltedPassword === user.passwordHash) {
-                const token = jwt.sign({ id: user._id }, AppConfig.SECRET, {
-                    expiresIn: 7200 // expires in 2 hours
+                // Generate JWT
+                const token = jwt.sign({ id: user._id }, AppConfig.SECRET);
+                // const token = jwt.sign({ id: user._id }, AppConfig.SECRET, { expiresIn: AppConfig.TOKEN_LIFESPAN });
+                // const refreshToken = jwt.sign({ id: user._id }, AppConfig.REFRESH_TOKEN_SECRET, { expiresIn: AppConfig.REFRESH_TOKEN_LIFESPAN });
+
+                // Password & salt should be used only during login
+                user.passwordHash = null;
+                user.salt = null;
+
+                // Generate response
+                const response = {
+                    auth: true,
+                    status: "Logged in",
+                    user: user,
+                    token: token
+                };
+                return res.status(HttpStatus.OK).json(response)
+            } else {
+                res.send(HttpStatus.FORBIDDEN).json({
+                    success: false,
+                    message: 'Incorrect username or password'
                 });
-                return res.status(HttpStatus.OK).json({ auth: true, user, token });
-            };
+            }
         }
         return res.status(HttpStatus.NOT_FOUND).json({
             status: 'Error',
@@ -31,6 +53,30 @@ const login = (req, res) => {
     });
 };
 
+// TODO: Discuss about potential token refresh
+// For mobile apps users ususally login only once so JWT shouldn't have any expiration date
+// However we should be able to revoke a JWT (e.g. users phone has been stolen)
+const token = (req, res) => {
+    const data = req.body;
+    // If refresh token exists
+    if ((data.refreshToken) && (data.refreshToken in tokenList)) {
+        const user = { email: data.email, active: true }
+        User.findOne(user).then(user => {
+            if (user) {
+                // Create new token
+                const token = jwt.sign({ id: user._id }, AppConfig.SECRET, { expiresIn: AppConfig.TOKEN_LIFESPAN });
+                const response = { "token": token };
+                // Update token in the list
+                tokenList[data.refreshToken].token = token
+                res.status(HttpStatus.OK).json(response);
+            } else {
+                res.status(HttpStatus.NOT_FOUND).send("User not found");
+            }
+        })
+    }
+}
+
 module.exports = {
-    login: login
+    login: login,
+    token: token
 };

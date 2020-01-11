@@ -30,38 +30,27 @@ const create = (req, res) => {
 // information about company can only be retrieved if it is an employee of the company
 const getById = (req, res) => {
     const companyId = req.params.id;
+    const decoded = req.decoded;
 
-    const token = req.headers['x-access-token'];
-    if (!token) {
-        return res.status(HttpStatus.UNAUTHORIZED).send({ auth: false, message: 'No token provided.' })
-    };
-
-    jwt.verify(token, AppConfig.SECRET, function (err, decoded) {
-        if (err) {
-            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ auth: false, message: 'Failed to authenticate token.' })
-        };
-
-        // we only need the companyID
-        User.findById(decoded.id, { companyID: 1 }).then(user => {
-            if (user) {
-                if (user.companyID.toString() === companyId) {
-                    Company.findById(companyId, { _id: 0 }).then(company => {
-                        return res.status(HttpStatus.OK).json(company);
-                    }).catch(err => {
-                        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                            status: 'Error',
-                            message: 'Internal server error'
-                        });
-                    });
-                } else {
-                    return res.status(HttpStatus.FORBIDDEN).json({
+    // we only need the companyID
+    User.findById(decoded.id, { companyID: 1 }).then(user => {
+        if (user) {
+            if (user.companyID.toString() === companyId) {
+                Company.findById(companyId, { _id: 0 }).then(company => {
+                    return res.status(HttpStatus.OK).json(company);
+                }).catch(err => {
+                    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                         status: 'Error',
-                        message: 'You are not allowed to see this information'
+                        message: 'Internal server error'
                     });
-                }
+                });
+            } else {
+                return res.status(HttpStatus.NOT_FOUND).json({
+                    status: 'Error',
+                    message: 'Company not found'
+                });
             }
-        });
-
+        }
     });
 };
 
