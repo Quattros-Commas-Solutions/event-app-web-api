@@ -1,15 +1,19 @@
-var Mongoose = require('mongoose');
+const Mongoose = require('mongoose');
 
-var companySchema = Mongoose.Schema({
+const companySchema = Mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
     location: {
         type: Object,
         required: true
     },
-    logoURL: String
+    logoURL: {
+        type: String,
+        trim: true
+    }
 });
 
-var Company = module.exports = Mongoose.model('company', companySchema, 'companies');
+const Company = module.exports = Mongoose.model('company', companySchema, 'companies');

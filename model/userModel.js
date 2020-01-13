@@ -1,11 +1,11 @@
-var Mongoose = require('mongoose');
+const Mongoose = require('mongoose');
 
-var userSchema = Mongoose.Schema({
+const userSchema = Mongoose.Schema({
     companyID: {
         type: Mongoose.Types.ObjectId,
         required: true
     },
-    name: { 
+    name: {
         type: String,
         required: true
     },
@@ -38,4 +38,4 @@ var userSchema = Mongoose.Schema({
     }
 });
 
-var User = module.exports = Mongoose.model('user', userSchema, 'users');
+const User = module.exports = Mongoose.model('user', userSchema, 'users');

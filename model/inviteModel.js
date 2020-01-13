@@ -1,6 +1,6 @@
-var Mongoose = require('mongoose');
+const Mongoose = require('mongoose');
 
-var inviteSchema = Mongoose.Schema({
+const inviteSchema = Mongoose.Schema({
     userID: {
         type: Mongoose.Types.ObjectId,
         required: true
@@ -9,7 +9,7 @@ var inviteSchema = Mongoose.Schema({
         type: Mongoose.Types.ObjectId,
         required: true
     },
-    responseType:{
+    responseType: {
         type: Number,
         required: true,
         default: 0
@@ -17,4 +17,4 @@ var inviteSchema = Mongoose.Schema({
     qrcode: String
 });
 
-var Invite = module.exports = Mongoose.model('invite', inviteSchema, 'invites');
+const Invite = module.exports = Mongoose.model('invite', inviteSchema, 'invites');

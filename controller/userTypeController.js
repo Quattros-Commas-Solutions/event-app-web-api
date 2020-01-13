@@ -1,15 +1,28 @@
 const UserType = require('../model/userTypeModel');
+const HttpStatus = require('http-status-codes');
 
-//Retrieve all user types
-module.exports.getAll = function(req, res){
-    UserType.find({}, function (err, data){
-        if(err){
-            res.send(err);
-        }else{
-            res.json({
-                status:'Success',
-                data: data
+const getAll = (req, res) => {
+    UserType.find({}, { _id: 0 }).then(userTypes => {
+        if (userTypes) {
+            const response = {
+                userTypes: userTypes
+            };
+            return res.status(HttpStatus.OK).json(response);
+        } else {
+            return res.status(HttpStatus.NOT_FOUND).json({
+                status: 'Error',
+                message: 'User types not found.'
             });
         }
-    })
-}
+    }).catch(err => {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            status: 'Error',
+            message: 'Internal server error.'
+        });
+    });
+};
+
+//Retrieve all user types
+module.exports = {
+    getAll: getAll
+};

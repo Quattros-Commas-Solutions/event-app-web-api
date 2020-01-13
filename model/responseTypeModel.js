@@ -1,6 +1,6 @@
-var Mongoose = require('mongoose');
+const Mongoose = require('mongoose');
 
-var responseTypeSchema = Mongoose.Schema({
+const responseTypeSchema = Mongoose.Schema({
     value: {
         type: Number,
         required: true
@@ -11,4 +11,4 @@ var responseTypeSchema = Mongoose.Schema({
     }
 });
 
-var ResponseType = module.exports = Mongoose.model('responseType', responseTypeSchema, 'responseTypes');
+const ResponseType = module.exports = Mongoose.model('responseType', responseTypeSchema, 'responseTypes');
