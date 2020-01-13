@@ -11,6 +11,7 @@ const companySchema = Mongoose.Schema({
         type: new Mongoose.Schema({
             address: {
                 type: String,
+                trim: true,
                 required: [true, 'Company location address is required']
             },
             latitude: {
