@@ -23,7 +23,7 @@ router.post('/user/login', (req, res) => userController.login(req, res));
 router.get('/user/token', (req, res) => userController.token(req, res));
 
 //UserType routes
-router.get('/user-types', auth, userTypeController.getAll);
+router.get('/user-types', auth, (req, res) => userTypeController.retrieveAll(req, res));
 
 // Company routes
 router.post('/company', auth, (req, res) => companyController.create(req, res));
