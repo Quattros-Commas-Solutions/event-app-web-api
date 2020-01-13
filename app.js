@@ -22,7 +22,6 @@ application.listen(port, () => {
             throw error;
         }
         console.log('Connection to ' + databaseName + ' successful!');
-        // console.log(Mongoose.connections);
     });
 });
 console.log('The app is running on port: ' + port);

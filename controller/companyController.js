@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 
 const Company = require('../model/companyModel');
 const User = require('../model/userModel');
-const AppConfig = require('../config').AppConfig;
 
 // companies are currently created internally and manually inserted into the database
 // since it is not defined who will be creating them, JWT validation is excluded at this point
@@ -19,7 +18,6 @@ const create = (req, res) => {
         keys.forEach(key => {
             errorMessage += `\t${err.errors[key].message} ${os.EOL}`;
         });
-        console.log(errorMessage);
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: 'Error',
             message: errorMessage

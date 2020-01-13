@@ -20,7 +20,7 @@ router.get('/', auth, (req, res) => {
 
 //User routes
 router.post('/user/login', (req, res) => userController.login(req, res));
-// router.get('/user/token', (req, res) => userController.token(req, res));
+router.get('/user/token', (req, res) => userController.token(req, res));
 
 //UserType routes
 router.get('/user-types', auth, userTypeController.getAll);

@@ -1,5 +1,5 @@
-const jwt = require("jsonwebtoken");
-const AppConfig = require("../config").AppConfig;
+const jwt = require('jsonwebtoken');
+const AppConfig = require('../config').AppConfig;
 const HttpStatus = require('http-status-codes');
 
 module.exports = (req, res, next) => {
@@ -21,6 +21,6 @@ module.exports = (req, res, next) => {
             }
         });
     } else {
-        return res.status(HttpStatus.FORBIDDEN).send({ success: false, message: 'No token provided.' });
+        return res.status(HttpStatus.FORBIDDEN).json({ success: false, message: 'No token provided.' });
     }
 }

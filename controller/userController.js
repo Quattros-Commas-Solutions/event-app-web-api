@@ -29,22 +29,24 @@ const login = (req, res) => {
                 // Generate response
                 const response = {
                     auth: true,
-                    status: "Logged in",
+                    status: 'Logged in',
                     user: user,
                     token: token
                 };
-                return res.status(HttpStatus.OK).json(response)
+
+                return res.status(HttpStatus.OK).json(response);
             } else {
-                res.send(HttpStatus.FORBIDDEN).json({
-                    success: false,
-                    message: 'Incorrect username or password'
+                return res.status(HttpStatus.FORBIDDEN).json({
+                    status: 'Error',
+                    message: 'Incorrect email or password'
                 });
             }
+        } else {
+            return res.status(HttpStatus.NOT_FOUND).json({
+                status: 'Error',
+                message: 'Please provide a valid email and password.'
+            });
         }
-        return res.status(HttpStatus.NOT_FOUND).json({
-            status: 'Error',
-            message: 'Please provide a valid username and password.'
-        });
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             status: 'Error',
@@ -65,14 +67,22 @@ const token = (req, res) => {
             if (user) {
                 // Create new token
                 const token = jwt.sign({ id: user._id }, AppConfig.SECRET, { expiresIn: AppConfig.TOKEN_LIFESPAN });
-                const response = { "token": token };
+                const response = { token: token };
                 // Update token in the list
-                tokenList[data.refreshToken].token = token
-                res.status(HttpStatus.OK).json(response);
+                tokenList[data.refreshToken].token = token;
+                return res.status(HttpStatus.OK).json(response);
             } else {
-                res.status(HttpStatus.NOT_FOUND).send("User not found");
+                return res.status(HttpStatus.NOT_FOUND).json({
+                    status: 'Error',
+                    message: 'User not found.'
+                });
             }
-        })
+        }).catch(err => {
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                status: 'Error',
+                message: 'Internal server error.'
+            });
+        });
     }
 }
 
