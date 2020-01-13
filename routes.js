@@ -26,9 +26,10 @@ router.get('/user/token', (req, res) => userController.token(req, res));
 router.get('/user-types', auth, userTypeController.getAll);
 
 // Company routes
-router.post('/company', auth, (req, res) => companyController.create(req, res));
-
+router.post('/company', (req, res) => companyController.create(req, res));
 router.get('/company/:id', auth, (req, res) => companyController.getById(req, res));
+router.patch('/company', auth, (req, res) => companyController.update(req, res));
+router.delete('/company/:id', (req, res) => companyController.deleteCompany(req, res));
 
 //Exporting the router
 module.exports = router;

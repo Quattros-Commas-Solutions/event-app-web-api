@@ -29,7 +29,8 @@ const userSchema = Mongoose.Schema({
     },
     accessType: {
         type: Number,
-        required: true
+        required: true,
+        enum: [0, 1, 2]
     },
     active: {
         type: Boolean,
