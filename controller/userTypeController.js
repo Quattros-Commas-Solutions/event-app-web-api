@@ -1,16 +1,18 @@
 const UserType = require('../model/userTypeModel');
 const HttpStatus = require('http-status-codes');
 
+const ValidationUtil = require('../util/validationUtil');
+
 const create = (req, res) => {
     const userType = new UserType(req.body);
 
     userType.save().then(() => {
         return res.status(HttpStatus.OK).json(userType);
     }).catch(err => {
-        //TODO: add error message building when the module is added to master
+        const errorMessage = ValidationUtil.buildErrorMessage(err, 'create', 'user type');
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: 'Error',
-            message: 'User type could not be created.'
+            message: errorMessage
         });
     })
 };
@@ -64,10 +66,12 @@ const update = (req, res) => {
             userType.save().then(() => {
                 return res.status(HttpStatus.OK).json(userType);
             }).catch(err => {
-                //TODO: add error message builder when the feature is done
+                const errorMessage = ValidationUtil.buildErrorMessage(err, 
+                                                                      'update', 
+                                                                      'user type');
                 return res.status(HttpStatus.BAD_REQUEST).json({
                     status: 'Error',
-                    message: 'User type could not be updated.'
+                    message: errorMessage
                 });
             })
         } else {
@@ -85,10 +89,10 @@ const remove = (req, res) => {
             status: 'User type removed'
         })
     }).catch(err => {
-        //TODO: update to use error builder when the module is ready
+        const errorMessage = ValidationUtil.buildErrorMessage(err, 'remove', 'user type');
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: 'Error',
-            message: 'User type could not be removed.'
+            message: errorMessage
         });
     })
 };
