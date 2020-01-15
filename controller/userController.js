@@ -2,8 +2,11 @@ const SHA256 = require('crypto-js/sha256');
 const jwt = require('jsonwebtoken');
 const HttpStatus = require('http-status-codes');
 
+const bcrypt = require('bcryptjs');
 const User = require('../model/userModel');
 const AppConfig = require('../config').AppConfig;
+const ValidationUtil = require('../util/validationUtil');
+
 // TODO: Discuss about the following solution for storing refresh tokens
 // Followed this tutorial https://codeforgeek.com/refresh-token-jwt-nodejs-authentication/
 // Discuss about JWT storage on client side. For Web apps accessToken is stored in Cookie/LocalStorage, what about Mobile apps?
@@ -86,7 +89,158 @@ const token = (req, res) => {
     }
 }
 
+const create = (req, res) => {
+    const user = new User(req.body);
+
+    // Check if an user with the provided email exists
+    User.find({ email: user.email }).then(users => {
+        if (users.length == 0) {
+            // Generate salt & passwordHash
+            user.salt = bcrypt.genSaltSync(AppConfig.SALT_ROUNDS);
+            user.passwordHash = bcrypt.hashSync(user.passwordHash, user.salt);
+            // Add new user
+            user.save().then(() => {
+                user.passwordHash = null;
+                user.salt = null;
+                return res.status(HttpStatus.OK).json(user);
+            });
+        } else {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                status: 'Error',
+                message: 'User with provided email already exists!'
+            });
+        }
+    }).catch(err => {
+        const errorMessage = ValidationUtil.buildErrorMessage(err, 'create', 'user');
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            status: 'Error',
+            message: errorMessage
+        });
+    });
+};
+
+const retrieveAll = (req, res) => {
+    User.find({}, { passwordHash: 0, salt: 0 }).then(users => {
+        if (users) {
+            return res.status(HttpStatus.OK).json(users);
+        } else {
+            return res.status(HttpStatus.NOT_FOUND).json({
+                status: 'Error',
+                message: 'Users not found.'
+            });
+        }
+    }).catch(err => {
+        const errorMessage = ValidationUtil.buildErrorMessage(err, 'retrieveAll', 'user');
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            status: 'Error',
+            message: errorMessage
+        });
+    });
+};
+
+const retrieveById = (req, res) => {
+    const userId = req.params.id;
+    if (userId.length != 24) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            status: 'Error',
+            message: 'Invalid ID'
+        });
+    }
+
+    User.findById(userId, { passwordHash: 0, salt: 0 }).then(user => {
+        if (user) {
+            return res.status(HttpStatus.OK).json(user);
+        } else {
+            return res.status(HttpStatus.NOT_FOUND).json({
+                status: 'Error',
+                message: 'User not found.'
+            });
+        }
+    }).catch(err => {
+        const errorMessage = ValidationUtil.buildErrorMessage(err, 'retrieveById', 'user');
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            status: 'Error',
+            message: errorMessage
+        });
+    });
+};
+
+const update = (req, res) => {
+    const userId = req.params.id;
+    if (userId.length != 24) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            status: 'Error',
+            message: 'Invalid ID'
+        });
+    }
+
+    User.findById(userId).then(user => {
+        if (user) {
+            // Update fields
+            user.name = req.body.name ? req.body.name : user.name;
+            user.surname = req.body.surname ? req.body.surname : user.surname;
+            user.email = req.body.email ? req.body.email : user.email;
+            user.dateOfBirth = req.body.dateOfBirth ? req.body.dateOfBirth : user.dateOfBirth;
+            user.active = req.body.active ? req.body.active : user.active;
+
+            // Save changes
+            user.save().then(() => {
+                user.passwordHash = null;
+                user.salt = null;
+                return res.status(HttpStatus.OK).json(user);
+            }).catch(err => {
+                const errorMessage = ValidationUtil.buildErrorMessage(err, 'update', 'user');
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    status: 'Error',
+                    message: errorMessage
+                });
+            });
+        } else {
+            return res.status(HttpStatus.NOT_FOUND).json({
+                status: 'Error',
+                message: 'User not found.'
+            });
+        }
+    }).catch(err => {
+        const errorMessage = ValidationUtil.buildErrorMessage(err, 'update', 'user');
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            status: 'Error',
+            message: errorMessage
+        });
+    });
+};
+
+const remove = (req, res) => {
+    const userId = req.params.id;
+    if (userId.length != 24) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            status: 'Error',
+            message: 'Invalid ID'
+        });
+    }
+
+    User.deleteOne({ _id: userId }).then((retVal) => {
+        if (retVal.deletedCount == 1) {
+            return res.status(HttpStatus.OK).json({ status: 'User removed.' });
+        } else {
+            return res.status(HttpStatus.NOT_FOUND).json({ status: 'User not found.' });
+        }
+    }).catch(err => {
+        const errorMessage = ValidationUtil.buildErrorMessage(err, 'remove', 'user');
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            status: 'Error',
+            message: errorMessage
+        });
+    });
+};
+
+
 module.exports = {
-    login: login,
-    token: token
+    login,
+    token,
+    create,
+    retrieveAll,
+    retrieveById,
+    update,
+    remove
 };
