@@ -140,7 +140,7 @@ const retrieveAll = (req, res) => {
 
 const retrieveById = (req, res) => {
     const userId = req.params.id;
-    if (userId.length != 24) {
+    if (userId.length != AppConfig.OBJECT_ID_LEN) {
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: 'Error',
             message: 'Invalid ID'
@@ -167,7 +167,7 @@ const retrieveById = (req, res) => {
 
 const update = (req, res) => {
     const userId = req.params.id;
-    if (userId.length != 24) {
+    if (userId.length != AppConfig.OBJECT_ID_LEN) {
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: 'Error',
             message: 'Invalid ID'
@@ -212,22 +212,38 @@ const update = (req, res) => {
 
 const remove = (req, res) => {
     const userId = req.params.id;
-    if (userId.length != 24) {
+    if (userId.length != AppConfig.OBJECT_ID_LEN) {
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: 'Error',
             message: 'Invalid ID'
         });
     }
 
-    User.deleteOne({ _id: userId }).then((retVal) => {
-        if (retVal.deletedCount == 1) {
-            return res.status(HttpStatus.OK).json({ status: 'User removed.' });
+    User.findById(userId).then(user => {
+        if (user) {
+            // Set soft delete flag
+            user.active = 0;
+            // Save changes
+            user.save().then(() => {
+                user.passwordHash = null;
+                user.salt = null;
+                return res.status(HttpStatus.OK).json(user);
+            }).catch(err => {
+                const errorMessage = ValidationUtil.buildErrorMessage(err, 'remove', 'user');
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    status: 'Error',
+                    message: errorMessage
+                });
+            });
         } else {
-            return res.status(HttpStatus.NOT_FOUND).json({ status: 'User not found.' });
+            return res.status(HttpStatus.NOT_FOUND).json({
+                status: 'Error',
+                message: 'User not found.'
+            });
         }
     }).catch(err => {
-        const errorMessage = ValidationUtil.buildErrorMessage(err, 'remove', 'user');
-        return res.status(HttpStatus.BAD_REQUEST).json({
+        const errorMessage = ValidationUtil.buildErrorMessage(err, 'update', 'user');
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             status: 'Error',
             message: errorMessage
         });

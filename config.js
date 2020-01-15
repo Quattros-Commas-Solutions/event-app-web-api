@@ -10,7 +10,8 @@ const AppConfig = {
     // 2 hours
     TOKEN_LIFESPAN: 7200,
     // 8 hours
-    REFRESH_TOKEN_LIFESPAN: 28800
+    REFRESH_TOKEN_LIFESPAN: 28800,
+    OBJECT_ID_LEN: 24
 };
 
 module.exports.AppConfig = AppConfig;
