@@ -30,6 +30,7 @@ router.post('/company', (req, res) => companyController.create(req, res));
 router.get('/company/:id', auth, (req, res) => companyController.getById(req, res));
 router.patch('/company', auth, (req, res) => companyController.update(req, res));
 router.delete('/company/:id', (req, res) => companyController.deleteCompany(req, res));
+router.get('/company/get-by-name/:name', auth, (req, res) => companyController.getByNameContains(req, res));
 
 //Exporting the router
 module.exports = router;

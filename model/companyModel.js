@@ -16,11 +16,21 @@ const companySchema = Mongoose.Schema({
             },
             latitude: {
                 type: Number,
-                required: [true, 'Latitude value for company location is required']
+                required: [true, 'Latitude value for company location is required'],
+                validate(value) {
+                    if (value > 360 || value < 0) {
+                        throw new Error('Invalid latitude value for location');
+                    }
+                }
             },
             longitude: {
                 type: Number,
-                required: [true, 'Longitude value for company location is required']
+                required: [true, 'Longitude value for company location is required'],
+                validate(value) {
+                    if (value > 360 || value < 0) {
+                        throw new Error('Invalid latitude value for longitude');
+                    }
+                }
             }
         }),
         required: [true, 'Company location is required']
