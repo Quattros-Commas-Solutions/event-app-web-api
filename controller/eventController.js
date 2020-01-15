@@ -79,4 +79,7 @@ const update = (req, res) => {
 
 module.exports = {
     create,
+    retrieveAll,
+    retrieveById,
+    update
 };
