@@ -3,7 +3,7 @@ const Mongoose = require('mongoose');
 const companySchema = Mongoose.Schema({
     name: {
         type: String,
-        required: [true, 'Company name is required'],
+        required: true,
         trim: true,
         minlength: [1, 'Company name cannot be left empty']
     },
@@ -12,25 +12,19 @@ const companySchema = Mongoose.Schema({
             address: {
                 type: String,
                 trim: true,
-                required: [true, 'Company location address is required']
+                required: true,
             },
             latitude: {
                 type: Number,
-                required: [true, 'Latitude value for company location is required'],
-                validate(value) {
-                    if (value > 360 || value < 0) {
-                        throw new Error('Invalid latitude value for location');
-                    }
-                }
+                required: true,
+                min: 0,
+                max: 360
             },
             longitude: {
                 type: Number,
-                required: [true, 'Longitude value for company location is required'],
-                validate(value) {
-                    if (value > 360 || value < 0) {
-                        throw new Error('Invalid latitude value for longitude');
-                    }
-                }
+                required: true,
+                min: 0,
+                max: 360
             }
         }),
         required: [true, 'Company location is required']
