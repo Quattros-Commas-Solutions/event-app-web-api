@@ -13,3 +13,7 @@ module.exports = {
     UserTypeEnum,
     StatusEnum
 };
+
+// Look at how http-status-codes are implemented
+// export declare const NAME = VALUE;
+// Is that a better option than current enums?

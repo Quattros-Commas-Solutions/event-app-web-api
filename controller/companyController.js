@@ -5,11 +5,14 @@ const Company = require('../model/companyModel');
 const ValidationUtil = require('../util/validationUtil');
 const UserTypeEnum = require('../model/enums').UserTypeEnum;
 const StatusEnum = require('../model/enums').StatusEnum;
+const AppConfig = require('../config').AppConfig;
 
 // companies are currently created internally and manually inserted into the database
 // since it is not defined who will be creating them, JWT validation is excluded at this point
 const create = (req, res) => {
+
     const company = new Company(req.body);
+
     company.save().then(() => {
         res.status(HttpStatus.CREATED).json(company);
     }).catch(err => {
@@ -19,40 +22,42 @@ const create = (req, res) => {
             message: errorMessage
         });
     });
+
 };
 
 // information about company can only be retrieved if it is an employee of the company
 const getById = (req, res) => {
+
     const companyId = req.params.id;
     const user = req.decoded;
 
-    // we only need the companyID
-    if (user) {
-        if (user.companyID.toString() === companyId) {
-            Company.findById(companyId, { _id: 0 }).then(company => {
-                if (!company) {
-                    return res.status(HttpStatus.NOT_FOUND).json({
-                        status: StatusEnum['ERROR'],
-                        message: 'Company not found'
-                    });
-                }
-                return res.status(HttpStatus.OK).json(company);
-            }).catch(err => {
-                return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    status: StatusEnum['ERROR'],
-                    message: 'Internal server error'
-                });
-            });
-        } else {
-            return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
-                message: 'Company not found'
-            });
-        }
-    } else {
+    if (!ValidationUtil.isValidObjectId(companyId) || !user) {
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: StatusEnum['ERROR'],
             message: 'Bad request'
+        });
+    }
+
+    // we only need the companyID
+    if (user.companyID.toString() === companyId) {
+        Company.findById(companyId, { _id: 0 }).then(company => {
+            if (!company) {
+                return res.status(HttpStatus.NOT_FOUND).json({
+                    status: StatusEnum['ERROR'],
+                    message: 'Company not found'
+                });
+            }
+            return res.status(HttpStatus.OK).json(company);
+        }).catch(err => {
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                status: StatusEnum['ERROR'],
+                message: 'Internal server error'
+            });
+        });
+    } else {
+        return res.status(HttpStatus.NOT_FOUND).json({
+            status: StatusEnum['ERROR'],
+            message: 'Company not found'
         });
     }
 
@@ -60,6 +65,7 @@ const getById = (req, res) => {
 
 // since we are the ones creating the companies directly
 const update = (req, res) => {
+
     const company = req.body.company;
     const user = req.decoded;
 
@@ -71,14 +77,8 @@ const update = (req, res) => {
     }
 
     // only the admin/super-admin level users of the company can issue an update
-    if (user.accessType in [UserTypeEnum['Super-Admin'], UserTypeEnum['Admin']] && user.companyID.toString() === company.id) {
-        Company.findByIdAndUpdate(company.id, company, { useFindAndModify: false, new: true, runValidators: true }, (err, model) => {
-            if (err) {
-                return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    status: StatusEnum['ERROR'],
-                    message: ValidationUtil.buildErrorMessage(err, 'update', 'company')
-                });
-            }
+    if (ValidationUtil.isUserAdmin(user.accessType) && user.companyID.toString() === company.id) {
+        Company.findByIdAndUpdate(company.id, company, { useFindAndModify: false, new: true, runValidators: true }).then(model => {
             if (!model) {
                 return res.status(HttpStatus.NOT_FOUND).json({
                     status: StatusEnum['ERROR'],
@@ -86,6 +86,11 @@ const update = (req, res) => {
                 });
             }
             return res.status(HttpStatus.OK).json(model);
+        }).catch(err => {
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                status: StatusEnum['ERROR'],
+                message: ValidationUtil.buildErrorMessage(err, 'update', 'company')
+            });
         });
     } else {
         return res.status(HttpStatus.UNAUTHORIZED).json({
@@ -100,7 +105,15 @@ const update = (req, res) => {
 // makes no sense for super-admin or regular admins to be able to delete a company, so authentication and other 
 // validation is left out until we figure out how to do it
 const deleteCompany = (req, res) => {
+
     const companyId = req.params.id;
+
+    if (!ValidationUtil.isValidObjectId(companyId)) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            status: StatusEnum['ERROR'],
+            message: 'Bad request'
+        });
+    }
 
     Company.findByIdAndDelete(companyId, { _id: 0 }).then(company => {
         if (!company) {
@@ -145,6 +158,7 @@ const getByNameContains = (req, res) => {
             message: 'Internal server error'
         });
     })
+
 };
 
 module.exports = {

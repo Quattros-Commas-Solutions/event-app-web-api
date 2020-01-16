@@ -39,7 +39,7 @@ const userSchema = Mongoose.Schema({
     },
     profilePic: {
         type: String,
-        required: false,
+        default: '',
         trim: true
     }
 });

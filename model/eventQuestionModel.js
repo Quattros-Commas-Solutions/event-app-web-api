@@ -11,15 +11,18 @@ const eventQuestionSchema = Mongoose.Schema({
     },
     content: {
         type: String,
-        required: true
+        required: true,
+        trim: true,
+        minlength: [1, 'Question content cannot be left blank']
     },
     responses: {
         type: [new Mongoose.Schema({
-            'content': {
+            content: {
                 type: String,
-                required: true
+                required: true,
+                trim: true
             },
-            user: {
+            user: { // a simplified version of the user is stored - maybe just store the ID, but then there will be an influx of queries whilst showing the Q&A section => DISCUSS
                 type: new Mongoose.Schema({
                     id: {
                         type: String,
@@ -38,13 +41,14 @@ const eventQuestionSchema = Mongoose.Schema({
                     },
                     profilePic: {
                         type: String,
-                        required: true,
+                        default: null,
                         trim: true
                     }
                 })
             }
         })],
-        required: false
+        required: false,
+        default: []
     }
 });
 
