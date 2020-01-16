@@ -20,7 +20,6 @@ const login = (req, res) => {
         email: req.body.email,
         active: true
     }).then(user => {
-        console.log(user);
         if (user) {
             const saltedPassword = bcrypt.hashSync(req.body.password, user.salt);
             if (saltedPassword === user.passwordHash) {
@@ -196,7 +195,7 @@ const update = (req, res) => {
         user.passwordHash = retVal.passwordHash;
     }
 
-    User.findOneAndUpdate({ _id: userId }, user).then(newUser => {
+    User.findOneAndUpdate({ _id: userId }, user, { useFindAndModify: false, new: true, runValidators: true }).then(newUser => {
         if (newUser) {
             newUser.passwordHash = null;
             newUser.salt = null;
@@ -225,7 +224,7 @@ const remove = (req, res) => {
         });
     }
 
-    User.findOneAndUpdate({ _id: userId }, { active: 0 }).then(user => {
+    User.findOneAndUpdate({ _id: userId }, { active: 0 }, { useFindAndModify: false, new: true, runValidators: true }).then(user => {
         if (user) {
             user.passwordHash = null;
             user.salt = null;
