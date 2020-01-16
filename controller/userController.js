@@ -102,7 +102,7 @@ const create = (req, res) => {
             user.save().then(() => {
                 user.passwordHash = null;
                 user.salt = null;
-                return res.status(HttpStatus.OK).json(user);
+                return res.status(HttpStatus.CREATED).json(user);
             });
         } else {
             return res.status(HttpStatus.BAD_REQUEST).json({
@@ -173,28 +173,24 @@ const update = (req, res) => {
             message: 'Invalid ID'
         });
     }
+    user = {};
+    // Update fields
+    if (req.body.name)
+        user.name = req.body.name;
+    if (req.body.surname)
+        user.surname = req.body.surname;
+    if (req.body.email)
+        user.email = req.body.email;
+    if (req.body.dateOfBirth)
+        user.dateOfBirth = req.body.dateOfBirth;
+    if (req.body.active)
+        user.active = req.body.active;
 
-    User.findById(userId).then(user => {
-        if (user) {
-            // Update fields
-            user.name = req.body.name ? req.body.name : user.name;
-            user.surname = req.body.surname ? req.body.surname : user.surname;
-            user.email = req.body.email ? req.body.email : user.email;
-            user.dateOfBirth = req.body.dateOfBirth ? req.body.dateOfBirth : user.dateOfBirth;
-            user.active = req.body.active ? req.body.active : user.active;
-
-            // Save changes
-            user.save().then(() => {
-                user.passwordHash = null;
-                user.salt = null;
-                return res.status(HttpStatus.OK).json(user);
-            }).catch(err => {
-                const errorMessage = ValidationUtil.buildErrorMessage(err, 'update', 'user');
-                return res.status(HttpStatus.BAD_REQUEST).json({
-                    status: 'Error',
-                    message: errorMessage
-                });
-            });
+    User.findOneAndUpdate({ _id: userId }, user).then(newUser => {
+        if (newUser) {
+            newUser.passwordHash = null;
+            newUser.salt = null;
+            return res.status(HttpStatus.OK).json(newUser);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
                 status: 'Error',
@@ -219,23 +215,13 @@ const remove = (req, res) => {
         });
     }
 
-    User.findById(userId).then(user => {
+    User.findOneAndUpdate({ _id: userId }, { active: 0 }).then(user => {
         if (user) {
-            // Set soft delete flag
-            user.active = 0;
-            // Save changes
-            user.save().then(() => {
-                user.passwordHash = null;
-                user.salt = null;
-                return res.status(HttpStatus.OK).json(user);
-            }).catch(err => {
-                const errorMessage = ValidationUtil.buildErrorMessage(err, 'remove', 'user');
-                return res.status(HttpStatus.BAD_REQUEST).json({
-                    status: 'Error',
-                    message: errorMessage
-                });
-            });
-        } else {
+            user.passwordHash = null;
+            user.salt = null;
+            return res.status(HttpStatus.OK).json(user);
+        }
+        else {
             return res.status(HttpStatus.NOT_FOUND).json({
                 status: 'Error',
                 message: 'User not found.'

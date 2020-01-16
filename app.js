@@ -1,6 +1,7 @@
 const Express = require('express');
 const BodyParser = require('body-parser');
 const Mongoose = require('mongoose');
+Mongoose.set('useFindAndModify', false);
 const AppConfig = require('./config').AppConfig;
 const routes = require('./routes');
 
