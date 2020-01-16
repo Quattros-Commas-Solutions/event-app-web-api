@@ -12,13 +12,17 @@ const ValidationUtil = require('../util/validationUtil');
 // Discuss about JWT storage on client side. For Web apps accessToken is stored in Cookie/LocalStorage, what about Mobile apps?
 const tokenList = {}
 
+
+// ================================== CRUD FUNCTIONS ==================================
+
 const login = (req, res) => {
     User.findOne({
         email: req.body.email,
         active: true
     }).then(user => {
+        console.log(user);
         if (user) {
-            const saltedPassword = SHA256(req.body.password + user.salt).toString();
+            const saltedPassword = bcrypt.hashSync(req.body.password, user.salt);
             if (saltedPassword === user.passwordHash) {
                 // Generate JWT
                 const token = jwt.sign({ id: user._id }, AppConfig.SECRET);
@@ -96,8 +100,9 @@ const create = (req, res) => {
     User.find({ email: user.email }).then(users => {
         if (users.length == 0) {
             // Generate salt & passwordHash
-            user.salt = bcrypt.genSaltSync(AppConfig.SALT_ROUNDS);
-            user.passwordHash = bcrypt.hashSync(user.passwordHash, user.salt);
+            let retVal = getPasswordHash(user.passwordHash);
+            user.salt = retVal.salt;
+            user.passwordHash = retVal.passwordHash;
             // Add new user
             user.save().then(() => {
                 user.passwordHash = null;
@@ -185,6 +190,11 @@ const update = (req, res) => {
         user.dateOfBirth = req.body.dateOfBirth;
     if (req.body.active)
         user.active = req.body.active;
+    if (req.body.passwordHash) {
+        let retVal = getPasswordHash(req.body.passwordHash);
+        user.salt = retVal.salt;
+        user.passwordHash = retVal.passwordHash;
+    }
 
     User.findOneAndUpdate({ _id: userId }, user).then(newUser => {
         if (newUser) {
@@ -235,6 +245,20 @@ const remove = (req, res) => {
         });
     });
 };
+
+// ---------------------------------- HELPER FUNCTIONS ----------------------------------
+
+function getPasswordHash(password) {
+    retVal = {};
+    // Generate salt & passwordHash
+    retVal.salt = bcrypt.genSaltSync(AppConfig.SALT_ROUNDS);
+    retVal.passwordHash = bcrypt.hashSync(password, retVal.salt);
+    return retVal;
+}
+
+// ======================================================================================
+
+
 
 
 module.exports = {
