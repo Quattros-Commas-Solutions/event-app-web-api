@@ -106,8 +106,8 @@ const create = (req, res) => {
 
 
     // Check if an user with the provided email exists
-    User.findOne({ email: user.email }).then(retVal => {
-        if (!retVal) {
+    User.findOne({ email: user.email }).then(obj => {
+        if (!obj) {
             // Generate salt & passwordHash
             let retVal = getPasswordHash(user.passwordHash);
             user.salt = retVal.salt;
