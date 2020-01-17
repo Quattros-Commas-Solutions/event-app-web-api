@@ -69,7 +69,7 @@ const update = (req, res) => {
     const company = req.body.company;
     const user = req.decoded;
 
-    if (!company || !user) {
+    if (!company || !user || !ValidationUtil.isValidObjectId(company.id)) {
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: StatusEnum['ERROR'],
             message: 'Bad request'
@@ -143,7 +143,8 @@ const getByNameContains = (req, res) => {
     }
 
     // since a user can be only part of one company, only one is being sent back
-    Company.findOne({ name: { $regex: `.*${companyName}.*` }, _id: new Mongoose.Types.ObjectId(user.companyID) }, { _id: 0 }).then(company => {
+    // case insensitive search
+    Company.findOne({ name: { $regex: `.*${companyName}.*`, '$options': 'i' }, _id: new Mongoose.Types.ObjectId(user.companyID) }, { _id: 0 }).then(company => {
         if (company) {
             return res.status(HttpStatus.OK).json(company);
         } else {

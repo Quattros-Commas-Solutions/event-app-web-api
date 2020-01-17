@@ -39,7 +39,7 @@ router.get('/event-question/:id', auth, (req, res) => eventQuestionController.ge
 router.delete('/event-question/:id', auth, (req, res) => eventQuestionController.deleteById(req, res));
 router.patch('/event-question', auth, (req, res) => eventQuestionController.update(req, res));
 router.post('/event-question/response', auth, (req, res) => eventQuestionController.addResponseToEvent(req, res));
-router.delete('/event-question/response/:responseId/:eventQuestionId', auth, (req, res) => eventQuestionController.deleteResponse(req, res));
+router.delete('/event-question/response/:eventQuestionId/:responseId', auth, (req, res) => eventQuestionController.deleteResponse(req, res));
 
 //Exporting the router
 module.exports = router;

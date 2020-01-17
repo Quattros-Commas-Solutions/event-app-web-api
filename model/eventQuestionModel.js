@@ -9,6 +9,10 @@ const eventQuestionSchema = Mongoose.Schema({
         type: Mongoose.Types.ObjectId,
         required: true
     },
+    companyID: {
+        type: Mongoose.Types.ObjectId,
+        required: true
+    },
     content: {
         type: String,
         required: true,
@@ -46,10 +50,14 @@ const eventQuestionSchema = Mongoose.Schema({
                     }
                 })
             }
+        }, {
+            timestamps: true // contains createdAt and updatedAt fields, which are what we need
         })],
         required: false,
         default: []
     }
+}, {
+    timestamps: true
 });
 
 const EventQuestion = module.exports = Mongoose.model('eventQuestion', eventQuestionSchema, 'eventQuestions');
