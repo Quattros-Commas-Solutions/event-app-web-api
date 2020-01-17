@@ -3,6 +3,7 @@ const HttpStatus = require('http-status-codes');
 
 const ValidationUtil = require('../util/validationUtil');
 
+//Function was done for practice but will not be exposed to api
 const create = (req, res) => {
     const userType = new UserType(req.body);
 
@@ -17,6 +18,7 @@ const create = (req, res) => {
     })
 };
 
+//Every user can get all of the user types so no validation for user or company needed
 const retrieveAll = (req, res) => {
     UserType.find({}, { _id: 0 }).then(userTypes => {
         if (userTypes) {
@@ -38,6 +40,8 @@ const retrieveAll = (req, res) => {
     });
 };
 
+
+//Every user can retrieve any of the user types so no user validation required
 const retrieveById = (req, res) => {
     const userTypeId = req.params.id;
 
@@ -58,6 +62,7 @@ const retrieveById = (req, res) => {
     });
 };
 
+//Function was implemented for practice and it will not be exposed to the api
 const update = (req, res) => {
     UserType.findById(req.params.id).then(userType => {
         if (userType) {
@@ -66,9 +71,9 @@ const update = (req, res) => {
             userType.save().then(() => {
                 return res.status(HttpStatus.OK).json(userType);
             }).catch(err => {
-                const errorMessage = ValidationUtil.buildErrorMessage(err, 
-                                                                      'update', 
-                                                                      'user type');
+                const errorMessage = ValidationUtil.buildErrorMessage(err,
+                    'update',
+                    'user type');
                 return res.status(HttpStatus.BAD_REQUEST).json({
                     status: 'Error',
                     message: errorMessage
@@ -83,16 +88,23 @@ const update = (req, res) => {
     });
 };
 
+//Function was implemented for practice and will not be exposed to api
 const remove = (req, res) => {
-    UserType.remove({_id: req.params.id}).then(() => {
-        return res.status(HttpStatus.OK).json({
-            status: 'User type removed'
-        })
+    const id = req.prams.id;
+
+    UserType.findByIdAndDelete(id, { _id: 0 }).then((userType) => {
+        if(userType){
+            return res.status(HttpStatus.OK).json(userType);
+        }else{
+            return res.status(HttpStatus.NOT_FOUND).json({
+                status: 'Error',
+                message: 'User type not found'
+            });
+        }
     }).catch(err => {
-        const errorMessage = ValidationUtil.buildErrorMessage(err, 'remove', 'user type');
-        return res.status(HttpStatus.BAD_REQUEST).json({
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             status: 'Error',
-            message: errorMessage
+            message: 'Internal server error'
         });
     })
 };
