@@ -20,13 +20,13 @@ router.get('/', auth, (req, res) => {
 
 // User routes 
 // TODO: Add auth middleware when JWT is finished
-router.get('/user/', (req, res) => userController.retrieveAll(req, res));
-router.post('/user/', (req, res) => userController.create(req, res));
-router.get('/user/:id', (req, res) => userController.retrieveById(req, res));
-router.post('/user/update/:id', (req, res) => userController.update(req, res));
-router.delete('/user/:id', (req, res) => userController.remove(req, res));
+router.get('/user/', auth, (req, res) => userController.retrieveAll(req, res));
+router.post('/user/', auth, (req, res) => userController.create(req, res));
+router.get('/user/:id', auth, (req, res) => userController.retrieveById(req, res));
+router.post('/user/update/:id', auth, (req, res) => userController.update(req, res));
+router.delete('/user/:id', auth, (req, res) => userController.remove(req, res));
 router.post('/user/login', (req, res) => userController.login(req, res));
-router.get('/user/token', (req, res) => userController.token(req, res));
+router.get('/user/token', auth, (req, res) => userController.token(req, res));
 
 //UserType routes
 router.get('/user-types', auth, userTypeController.getAll);

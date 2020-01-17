@@ -24,9 +24,9 @@ const login = (req, res) => {
             const saltedPassword = bcrypt.hashSync(req.body.password, user.salt);
             if (saltedPassword === user.passwordHash) {
                 // Generate JWT
-                const token = jwt.sign({ id: user._id }, AppConfig.SECRET);
-                // const token = jwt.sign({ id: user._id }, AppConfig.SECRET, { expiresIn: AppConfig.TOKEN_LIFESPAN });
-                // const refreshToken = jwt.sign({ id: user._id }, AppConfig.REFRESH_TOKEN_SECRET, { expiresIn: AppConfig.REFRESH_TOKEN_LIFESPAN });
+                const token = jwt.sign(JSON.stringify(user), AppConfig.SECRET);
+                // const token = jwt.sign(JSON.stringify(user), AppConfig.SECRET, { expiresIn: AppConfig.TOKEN_LIFESPAN });
+                // const refreshToken = jwt.sign(JSON.stringify(user), AppConfig.REFRESH_TOKEN_SECRET, { expiresIn: AppConfig.REFRESH_TOKEN_LIFESPAN });
 
                 // Password & salt should be used only during login
                 user.passwordHash = null;
@@ -72,7 +72,7 @@ const token = (req, res) => {
         User.findOne(user).then(user => {
             if (user) {
                 // Create new token
-                const token = jwt.sign({ id: user._id }, AppConfig.SECRET, { expiresIn: AppConfig.TOKEN_LIFESPAN });
+                const token = jwt.sign(JSON.stringify(user), AppConfig.SECRET, { expiresIn: AppConfig.TOKEN_LIFESPAN });
                 const response = { token: token };
                 // Update token in the list
                 tokenList[data.refreshToken].token = token;
@@ -94,10 +94,20 @@ const token = (req, res) => {
 
 const create = (req, res) => {
     const user = new User(req.body);
+    const loggedUser = {};
+    loggedUser.companyID = user.companyID;
+    // Logged user can only create new users within his company 
+    if (loggedUser.companyID != user.companyID) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            status: 'Error',
+            message: 'Companies don\'t match'
+        });
+    }
+
 
     // Check if an user with the provided email exists
-    User.find({ email: user.email }).then(users => {
-        if (users.length == 0) {
+    User.findOne({ email: user.email }).then(retVal => {
+        if (!retVal) {
             // Generate salt & passwordHash
             let retVal = getPasswordHash(user.passwordHash);
             user.salt = retVal.salt;
@@ -124,7 +134,9 @@ const create = (req, res) => {
 };
 
 const retrieveAll = (req, res) => {
-    User.find({}, { passwordHash: 0, salt: 0 }).then(users => {
+    const user = req.decoded;
+
+    User.find({ companyID: user.companyID }, { passwordHash: 0, salt: 0 }).then(users => {
         if (users) {
             return res.status(HttpStatus.OK).json(users);
         } else {
@@ -144,6 +156,8 @@ const retrieveAll = (req, res) => {
 
 const retrieveById = (req, res) => {
     const userId = req.params.id;
+    const loggedUser = req.decoded;
+
     if (userId.length != AppConfig.OBJECT_ID_LEN) {
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: 'Error',
@@ -152,7 +166,8 @@ const retrieveById = (req, res) => {
     }
 
     User.findById(userId, { passwordHash: 0, salt: 0 }).then(user => {
-        if (user) {
+        // Client can only retrieve users within his company
+        if (user && user.companyID === loggedUser.companyID) {
             return res.status(HttpStatus.OK).json(user);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
@@ -178,6 +193,12 @@ const update = (req, res) => {
         });
     }
     user = {};
+    // TODO: 
+    // Make 4 functions from this one:
+    //  1. updateFields() (everything except password & active flag)
+    //  2. updatePassword()
+    //  3. blockUser (basically remove)
+    //  3. activateUser
     // Update fields
     if (req.body.name)
         user.name = req.body.name;
@@ -217,6 +238,8 @@ const update = (req, res) => {
 
 const remove = (req, res) => {
     const userId = req.params.id;
+    const loggedUser = req.decoded;
+
     if (userId.length != AppConfig.OBJECT_ID_LEN) {
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: 'Error',
@@ -224,7 +247,7 @@ const remove = (req, res) => {
         });
     }
 
-    User.findOneAndUpdate({ _id: userId }, { active: 0 }, { useFindAndModify: false, new: true, runValidators: true }).then(user => {
+    User.findOneAndUpdate({ _id: userId, companyID: loggedUser.companyID }, { active: 0 }, { useFindAndModify: false, new: true, runValidators: true }).then(user => {
         if (user) {
             user.passwordHash = null;
             user.salt = null;
@@ -248,7 +271,7 @@ const remove = (req, res) => {
 // ---------------------------------- HELPER FUNCTIONS ----------------------------------
 
 function getPasswordHash(password) {
-    retVal = {};
+    let retVal = {};
     // Generate salt & passwordHash
     retVal.salt = bcrypt.genSaltSync(AppConfig.SALT_ROUNDS);
     retVal.passwordHash = bcrypt.hashSync(password, retVal.salt);
