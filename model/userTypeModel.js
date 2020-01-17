@@ -7,7 +7,8 @@ const userTypeSchema = Mongoose.Schema({
     },
     name: {
         type: String,
-        required: true
+        required: true,
+        enum: ['Super-Admin', 'Admin', 'Employee']
     }
 });
 

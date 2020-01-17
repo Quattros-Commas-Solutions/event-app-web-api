@@ -8,6 +8,7 @@ const AppConfig = require('./config').AppConfig;
 const userTypeController = require('./controller/userTypeController');
 const userController = require('./controller/userController');
 const companyController = require('./controller/companyController');
+const eventQuestionController = require('./controller/eventQuestionController');
 
 //Setting the default route
 router.get('/', auth, (req, res) => {
@@ -26,9 +27,19 @@ router.get('/user/token', (req, res) => userController.token(req, res));
 router.get('/user-types', auth, userTypeController.getAll);
 
 // Company routes
-router.post('/company', auth, (req, res) => companyController.create(req, res));
-
+router.post('/company', (req, res) => companyController.create(req, res));
 router.get('/company/:id', auth, (req, res) => companyController.getById(req, res));
+router.patch('/company', auth, (req, res) => companyController.update(req, res));
+router.delete('/company/:id', (req, res) => companyController.deleteCompany(req, res));
+router.get('/company/get-by-name/:name', auth, (req, res) => companyController.getByNameContains(req, res));
+
+// EventQuestion routes 
+router.post('/event-question', auth, (req, res) => eventQuestionController.create(req, res));
+router.get('/event-question/:id', auth, (req, res) => eventQuestionController.getById(req, res));
+router.delete('/event-question/:id', auth, (req, res) => eventQuestionController.deleteById(req, res));
+router.patch('/event-question', auth, (req, res) => eventQuestionController.update(req, res));
+router.post('/event-question/response', auth, (req, res) => eventQuestionController.addResponseToEvent(req, res));
+router.delete('/event-question/response/:eventQuestionId/:responseId', auth, (req, res) => eventQuestionController.deleteResponse(req, res));
 
 //Exporting the router
 module.exports = router;

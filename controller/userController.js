@@ -18,9 +18,9 @@ const login = (req, res) => {
             const saltedPassword = SHA256(req.body.password + user.salt).toString();
             if (saltedPassword === user.passwordHash) {
                 // Generate JWT
-                const token = jwt.sign(user, AppConfig.SECRET);
-                // const token = jwt.sign({ id: user._id }, AppConfig.SECRET, { expiresIn: AppConfig.TOKEN_LIFESPAN });
-                // const refreshToken = jwt.sign({ id: user._id }, AppConfig.REFRESH_TOKEN_SECRET, { expiresIn: AppConfig.REFRESH_TOKEN_LIFESPAN });
+                const token = jwt.sign(JSON.stringify(user), AppConfig.SECRET);
+                // const token = jwt.sign(JSON.stringify(user), AppConfig.SECRET, { expiresIn: AppConfig.TOKEN_LIFESPAN });
+                // const refreshToken = jwt.sign(JSON.stringify(user), AppConfig.REFRESH_TOKEN_SECRET, { expiresIn: AppConfig.REFRESH_TOKEN_LIFESPAN });
 
                 // Password & salt should be used only during login
                 user.passwordHash = null;

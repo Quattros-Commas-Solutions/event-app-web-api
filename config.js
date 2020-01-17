@@ -6,10 +6,9 @@ const AppConfig = {
     DATABASE_NAME: 'events-app',
     SECRET: 'SUPER_SECRET_SRBIJA_SRBIMA',
     REFRESH_TOKEN_SECRET: 'SUPER_SECRET_KOSOVO_I_METOHIJA',
-    // 2 hours
-    TOKEN_LIFESPAN: 7200,
-    // 8 hours
-    REFRESH_TOKEN_LIFESPAN: 28800
+    TOKEN_LIFESPAN: 7200, // 2 hours
+    REFRESH_TOKEN_LIFESPAN: 28800, // 8 hours
+    OBJECT_ID_LEN: 24
 };
 
 module.exports.AppConfig = AppConfig;
