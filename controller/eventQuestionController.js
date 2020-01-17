@@ -212,9 +212,9 @@ const deleteResponse = (req, res) => {
             message: ValidationUtil.buildErrorMessage(err, 'delete', 'response')
         });
     });
-}
 
-// possible other functions to add: delete after specified time - could be useful for events that have passed
+};
+
 module.exports = {
     create,
     getById,
