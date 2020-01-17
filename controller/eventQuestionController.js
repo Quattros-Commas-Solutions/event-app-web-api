@@ -18,15 +18,38 @@ const create = (req, res) => {
         });
     }
 
-    const eventQuestion = new EventQuestion(req.body);
+    let eventQuestion = new EventQuestion(req.body);
+    // this way we can send 2 parameters less in the request
+    eventQuestion.userID = user._id;
+    eventQuestion.companyID = user.companyID;
 
-    eventQuestion.save().then(() => {
-        return res.status(HttpStatus.CREATED).json(eventQuestion);
+    if (user.companyID.toString() !== eventQuestion.companyID.toString()) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+            status: StatusEnum['ERROR'],
+            message: 'Unauthorized'
+        });
+    }
+
+    // we must make sure that it is an event of the company the user is part
+    Event.findOne({ _id: new ObjectId(eventQuestion.eventID), companyID: new ObjectId(eventQuestion.companyID) }).then(event => {
+        if (!event) {
+            return res.status(HttpStatus.NOT_FOUND).json({
+                status: StatusEnum['ERROR'],
+                message: 'Event not found'
+            });
+        }
+        eventQuestion.save().then(() => {
+            return res.status(HttpStatus.CREATED).json(eventQuestion);
+        }).catch(err => {
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                status: StatusEnum['ERROR'],
+                message: ValidationUtil.buildErrorMessage(err, 'create', 'eventQuestion')
+            });
+        });
     }).catch(err => {
-        const errorMessage = ValidationUtil.buildErrorMessage(err, 'create', 'eventQuestion');
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             status: StatusEnum['ERROR'],
-            message: errorMessage
+            message: ValidationUtil.buildErrorMessage(err, 'create', 'eventQuestion')
         });
     });
 
