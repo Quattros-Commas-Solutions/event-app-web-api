@@ -1,5 +1,7 @@
 const Mongoose = require('mongoose');
 
+const LocationSchema = require('../util/schemas/locationSchema');
+
 const eventSchema = Mongoose.Schema({
     companyID: {
         type: Mongoose.Types.ObjectId,
@@ -10,7 +12,7 @@ const eventSchema = Mongoose.Schema({
         required: true
     },
     location: {
-        type: Object,
+        type: LocationSchema,
         required: true
     },
     startTime: {
@@ -26,7 +28,7 @@ const eventSchema = Mongoose.Schema({
     documentURL: Array,
     attendanceRequired: {
         type: Boolean,
-        required: true
+        default: false
     },
     active: {
         type: Boolean,
