@@ -29,12 +29,18 @@ const userSchema = Mongoose.Schema({
     },
     accessType: {
         type: Number,
-        required: true
+        required: true,
+        enum: [0, 1, 2]
     },
     active: {
         type: Boolean,
         required: true,
         default: true
+    },
+    profilePic: {
+        type: String,
+        default: '',
+        trim: true
     }
 });
 
