@@ -5,6 +5,10 @@ const eventGroupSchema = Mongoose.Schema({
         type: Mongoose.Types.ObjectId,
         required: true
     },
+    companyID: {
+        type: Mongoose.Types.ObjectId,
+        required: true
+    },
     name: {
         type: String,
         required: true

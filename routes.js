@@ -9,6 +9,7 @@ const userTypeController = require('./controller/userTypeController');
 const userController = require('./controller/userController');
 const companyController = require('./controller/companyController');
 const eventQuestionController = require('./controller/eventQuestionController');
+const eventGropController = require('./controller/eventGroupController');
 
 //Setting the default route
 router.get('/', auth, (req, res) => {
@@ -24,7 +25,7 @@ router.get('/', auth, (req, res) => {
 router.get('/user/', auth, (req, res) => userController.retrieveAll(req, res));
 router.post('/user/', auth, (req, res) => userController.create(req, res));
 router.get('/user/:id', auth, (req, res) => userController.retrieveById(req, res));
-router.post('/user/update/:id', auth, (req, res) => userController.update(req, res));
+router.patch('/user/update/:id', auth, (req, res) => userController.update(req, res));
 router.delete('/user/:id', auth, (req, res) => userController.remove(req, res));
 router.post('/user/login', (req, res) => userController.login(req, res));
 router.get('/user/token', auth, (req, res) => userController.token(req, res));
@@ -46,6 +47,14 @@ router.delete('/event-question/:id', auth, (req, res) => eventQuestionController
 router.patch('/event-question', auth, (req, res) => eventQuestionController.update(req, res));
 router.post('/event-question/response', auth, (req, res) => eventQuestionController.addResponseToEvent(req, res));
 router.delete('/event-question/response/:eventQuestionId/:responseId', auth, (req, res) => eventQuestionController.deleteResponse(req, res));
+
+// EventGroup routes
+router.get('/event-group', auth, (req, res) => eventGropController.retrieveAll(req, res))
+router.post('/event-group', auth, (req, res) => eventGropController.create(req, res))
+router.get('/event-group/:id', auth, (req, res) => eventGropController.retrieveById(req, res))
+router.patch('/event-group/:id', auth, (req, res) => eventGropController.update(req, res))
+router.delete('/event-group/:id', auth, (req, res) => eventGropController.remove(req, res))
+
 
 //Exporting the router
 module.exports = router;

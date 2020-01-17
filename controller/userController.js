@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const User = require('../model/userModel');
 const AppConfig = require('../config').AppConfig;
 const ValidationUtil = require('../util/validationUtil');
+const StatusEnum = require('../model/enums').StatusEnum;
 
 // TODO: Discuss about the following solution for storing refresh tokens
 // Followed this tutorial https://codeforgeek.com/refresh-token-jwt-nodejs-authentication/
@@ -43,19 +44,19 @@ const login = (req, res) => {
                 return res.status(HttpStatus.OK).json(response);
             } else {
                 return res.status(HttpStatus.FORBIDDEN).json({
-                    status: 'Error',
+                    status: StatusEnum['ERROR'],
                     message: 'Incorrect email or password'
                 });
             }
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: 'Error',
+                status: StatusEnum['ERROR'],
                 message: 'Please provide a valid email and password.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: 'Error',
+            status: StatusEnum['ERROR'],
             message: 'Internal server error.'
         });
     });
@@ -79,13 +80,13 @@ const token = (req, res) => {
                 return res.status(HttpStatus.OK).json(response);
             } else {
                 return res.status(HttpStatus.NOT_FOUND).json({
-                    status: 'Error',
+                    status: StatusEnum['ERROR'],
                     message: 'User not found.'
                 });
             }
         }).catch(err => {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                status: 'Error',
+                status: StatusEnum['ERROR'],
                 message: 'Internal server error.'
             });
         });
@@ -99,7 +100,7 @@ const create = (req, res) => {
     // Logged user can only create new users within his company 
     if (loggedUser.companyID != user.companyID) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: 'Error',
+            status: StatusEnum['ERROR'],
             message: 'Companies don\'t match'
         });
     }
@@ -120,15 +121,14 @@ const create = (req, res) => {
             });
         } else {
             return res.status(HttpStatus.BAD_REQUEST).json({
-                status: 'Error',
+                status: StatusEnum['ERROR'],
                 message: 'User with provided email already exists!'
             });
         }
     }).catch(err => {
-        const errorMessage = ValidationUtil.buildErrorMessage(err, 'create', 'user');
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: 'Error',
-            message: errorMessage
+            status: StatusEnum['ERROR'],
+            message: ValidationUtil.buildErrorMessage(err, 'create', 'user')
         });
     });
 };
@@ -141,15 +141,14 @@ const retrieveAll = (req, res) => {
             return res.status(HttpStatus.OK).json(users);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: 'Error',
+                status: StatusEnum['ERROR'],
                 message: 'Users not found.'
             });
         }
     }).catch(err => {
-        const errorMessage = ValidationUtil.buildErrorMessage(err, 'retrieveAll', 'user');
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: 'Error',
-            message: errorMessage
+            status: StatusEnum['ERROR'],
+            message: ValidationUtil.buildErrorMessage(err, 'retrieveAll', 'user')
         });
     });
 };
@@ -160,7 +159,7 @@ const retrieveById = (req, res) => {
 
     if (userId.length != AppConfig.OBJECT_ID_LEN) {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: 'Error',
+            status: StatusEnum['ERROR'],
             message: 'Invalid ID'
         });
     }
@@ -171,15 +170,14 @@ const retrieveById = (req, res) => {
             return res.status(HttpStatus.OK).json(user);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: 'Error',
+                status: StatusEnum['ERROR'],
                 message: 'User not found.'
             });
         }
     }).catch(err => {
-        const errorMessage = ValidationUtil.buildErrorMessage(err, 'retrieveById', 'user');
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: 'Error',
-            message: errorMessage
+            status: StatusEnum['ERROR'],
+            message: ValidationUtil.buildErrorMessage(err, 'retrieveById', 'user')
         });
     });
 };
@@ -188,7 +186,7 @@ const update = (req, res) => {
     const userId = req.params.id;
     if (userId.length != AppConfig.OBJECT_ID_LEN) {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: 'Error',
+            status: StatusEnum['ERROR'],
             message: 'Invalid ID'
         });
     }
@@ -223,15 +221,14 @@ const update = (req, res) => {
             return res.status(HttpStatus.OK).json(newUser);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: 'Error',
+                status: StatusEnum['ERROR'],
                 message: 'User not found.'
             });
         }
     }).catch(err => {
-        const errorMessage = ValidationUtil.buildErrorMessage(err, 'update', 'user');
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: 'Error',
-            message: errorMessage
+            status: StatusEnum['ERROR'],
+            message: ValidationUtil.buildErrorMessage(err, 'update', 'user')
         });
     });
 };
@@ -242,7 +239,7 @@ const remove = (req, res) => {
 
     if (userId.length != AppConfig.OBJECT_ID_LEN) {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: 'Error',
+            status: StatusEnum['ERROR'],
             message: 'Invalid ID'
         });
     }
@@ -255,15 +252,14 @@ const remove = (req, res) => {
         }
         else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: 'Error',
+                status: StatusEnum['ERROR'],
                 message: 'User not found.'
             });
         }
     }).catch(err => {
-        const errorMessage = ValidationUtil.buildErrorMessage(err, 'update', 'user');
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: 'Error',
-            message: errorMessage
+            status: StatusEnum['ERROR'],
+            message: ValidationUtil.buildErrorMessage(err, 'update', 'user')
         });
     });
 };
