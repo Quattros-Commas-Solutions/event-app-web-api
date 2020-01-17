@@ -82,7 +82,7 @@ const update = (req, res) => {
             if (!model) {
                 return res.status(HttpStatus.NOT_FOUND).json({
                     status: StatusEnum['ERROR'],
-                    message: `Company with ID '${company.id}' nor found`
+                    message: `Company with ID '${company.id}' not found`
                 });
             }
             return res.status(HttpStatus.OK).json(model);
