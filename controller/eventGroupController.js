@@ -19,7 +19,8 @@ const create = (req, res) => {
         });
     }
     // TODO: AdminAuth MW
-    // TODO: Figure out how to insert users in array
+    // TODO: add new user to eventGroup (update eventGroup.users)
+    // TODO: remove user from eventGroup
     const eventGroup = new EventGroup(req.body);
 
     if (loggedUser.companyID != eventGroup.companyID) {
@@ -102,7 +103,33 @@ const retrieveById = (req, res) => {
     });
 };
 
-const update = (req, res) => { };
+const update = (req, res) => {
+    const eventGroupId = req.params.id;
+    const loggedUser = req.decoded;
+
+    if (!ValidationUtil.isValidObjectId(eventGroupId) || !req.body) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            status: StatusEnum['ERROR'],
+            message: 'Bad request'
+        });
+    }
+
+    EventGroup.findOneAndUpdate({ _id: eventGroupId, companyID: loggedUser.companyID }, req.body, { useFindAndModify: false, new: true, runValidators: true }).then(eventGroup => {
+        if (eventGroup) {
+            return res.status(HttpStatus.OK).json(eventGroup);
+        } else {
+            return res.status(HttpStatus.NOT_FOUND).json({
+                status: StatusEnum['ERROR'],
+                message: 'Event group not found'
+            });
+        }
+    }).catch(err => {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            status: StatusEnum['ERROR'],
+            message: ValidationUtil.buildErrorMessage(err, 'update', 'eventGroup')
+        });
+    });
+};
 
 const remove = (req, res) => {
     const eventGroupId = req.params.id;
