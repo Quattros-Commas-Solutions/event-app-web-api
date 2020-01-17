@@ -2,6 +2,7 @@ const UserType = require('../model/userTypeModel');
 const HttpStatus = require('http-status-codes');
 
 const ValidationUtil = require('../util/validationUtil');
+const StatusEnum = require('../model/enums').StatusEnum;
 
 //Function was done for practice but will not be exposed to api
 const create = (req, res) => {
@@ -12,7 +13,7 @@ const create = (req, res) => {
     }).catch(err => {
         const errorMessage = ValidationUtil.buildErrorMessage(err, 'create', 'user type');
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: 'Error',
+            status: StatusEnum['ERROR'],
             message: errorMessage
         });
     })
@@ -22,19 +23,16 @@ const create = (req, res) => {
 const retrieveAll = (req, res) => {
     UserType.find({}, { _id: 0 }).then(userTypes => {
         if (userTypes) {
-            const response = {
-                userTypes: userTypes
-            };
-            return res.status(HttpStatus.OK).json(response);
+            return res.status(HttpStatus.OK).json(userTypes);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: 'Error',
+                status: StatusEnum['ERROR'],
                 message: 'User types not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: 'Error',
+            status: StatusEnum['ERROR'],
             message: 'Internal server error.'
         });
     });
@@ -50,14 +48,14 @@ const retrieveById = (req, res) => {
             return res.status(HttpStatus.OK).json(userType);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: 'Error',
+                status: StatusEnum['ERROR'],
                 message: 'User type not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             status: 'Error',
-            message: 'There was a problem retrieving the user type.'
+            message: 'Internal server error.'
         });
     });
 };
@@ -93,18 +91,18 @@ const remove = (req, res) => {
     const id = req.prams.id;
 
     UserType.findByIdAndDelete(id, { _id: 0 }).then((userType) => {
-        if(userType){
+        if (userType) {
             return res.status(HttpStatus.OK).json(userType);
-        }else{
+        } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: 'Error',
-                message: 'User type not found'
+                status: StatusEnum['ERROR'],
+                message: 'User type not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: 'Error',
-            message: 'Internal server error'
+            status: StatusEnum['ERROR'],
+            message: 'Internal server error.'
         });
     })
 };
