@@ -98,7 +98,7 @@ const create = (req, res) => {
 
     // Logged user can only create new users within his company 
     if (loggedUser.companyID != user.companyID) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
+        return res.status(HttpStatus.UNAUTHORIZED).json({
             status: 'Error',
             message: 'Companies don\'t match'
         });
