@@ -11,7 +11,7 @@ const create = (req, res) => {
 
     const user = req.decoded;
 
-    if (!user || !ValidationUtil.isUserAdmin(user.accessType) || !req.body) {
+    if (!user || !req.body) {
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: StatusEnum['ERROR'],
             message: 'Bad request'
