@@ -5,7 +5,7 @@ const auth = require('./middleware/auth')
 const AppConfig = require('./config').AppConfig;
 
 //Importing controllers
-const userTypeController = require('./controller/userTypeController');
+const eventController = require('./controller/eventController');
 const userController = require('./controller/userController');
 const companyController = require('./controller/companyController');
 const eventQuestionController = require('./controller/eventQuestionController');
@@ -29,9 +29,11 @@ router.delete('/user/:id', auth, (req, res) => userController.remove(req, res));
 router.post('/user/login', (req, res) => userController.login(req, res));
 router.get('/user/token', auth, (req, res) => userController.token(req, res));
 
-//UserType routes
-router.get('/user-type', auth, (req, res) => userTypeController.retrieveAll(req, res));
-router.get('/user-type/:id', auth, (req, res) => userTypeController.retrieveById(req, res));
+//Event routes
+router.get('/event', auth, (req,res) => eventController.retrieveAll(req, res));
+router.post('/event', auth, (req,res) => eventController.create(req, res));
+router.get('/event/:id', auth, (req,res) => eventController.retrieveById(req, res));
+
 
 // Company routes
 router.post('/company', (req, res) => companyController.create(req, res));

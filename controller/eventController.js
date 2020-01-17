@@ -1,9 +1,22 @@
 const Event = require('../model/eventModel');
+const Invite = require('../model/inviteModel');
 const HttpStatus = require('http-status-codes');
+const ObjectId = require('mongoose').Types.ObjectId;
 
 const ValidationUtil = require('../util/validationUtil');
+const StatusEnum = require('../model/enums').StatusEnum;
 
 const create = (req, res) => {
+    const user = req.decoded;
+
+    //Only admins can create event objets
+    if (!user || !ValidationUtil.isUserAdmin(user.accessType)) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+            status: StatusEnum['ERROR'],
+            message: 'Unauhorized.'
+        })
+    }
+
     const event = new Event(req.body);
 
     event.save().then(() => {
@@ -17,53 +30,119 @@ const create = (req, res) => {
     });
 };
 
-//Events can only be retrieved for a specific company
 const retrieveAll = (req, res) => {
-    const companyId = req.body.companyId;
+    const user = req.decoded;
+    const companyId = user.companyID;
 
-    Event.find({ companyID: companyId }).then((events) => {
-        if (events) {
-            const response = {
-                events: events
-            };
-
-            return res.status(HttpStatus.OK).json(response);
-        } else {
-            return res.status(HttpStatus.NOT_FOUND).json({
-                status: 'Error',
-                message: 'Events not found.'
-            })
-        }
-    }).catch(err => {
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: 'Error',
-            message: 'Internal server error.'
+    //All events can only be retrieved by an admin for the admin app
+    if (user && ValidationUtil.isUserAdmin(user.accessType)) {
+        //Retrieving only events for the company of the admin
+        Event.find({ companyID: companyId }).then((events) => {
+            if (events) {
+                return res.status(HttpStatus.OK).json(events);
+            } else {
+                return res.status(HttpStatus.NOT_FOUND).json({
+                    status: StatusEnum['ERROR'],
+                    message: 'Events not found.'
+                })
+            }
+        }).catch(err => {
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                status: StatusEnum['ERROR'],
+                message: 'Internal server error.'
+            });
         });
-    });
+        //Regulal users can get all of the events where they are invited    
+    } else if (user && !ValidationUtil.isUserAdmin(user.accessType)) {
+        //TODO: Discuss better and faster solutions for this
+        Invite.find({ userID: new ObjectId(user._id) }).then(invites => {
+            if (!invites) {
+                return res.status(HttpStatus.NOT_FOUND).json({
+                    status: StatusEnum['ERROR'],
+                    message: 'No events for user.'
+                });
+            } else {
+                //First we extract the event id's from invites
+                let eventIDs = [];
+                invites.forEach(invite => {
+                    eventIDs.push(new ObjectId(invite.eventID));
+                });
+                //Now we find all the events for the event ids
+                Event.find({ '_id': { $in: eventIDs } }).then(events => {
+                    if (events) {
+                        return res.status(HttpStatus.OK).json(events);
+                    } else {
+                        return res.status(HttpStatus.NOT_FOUND).json({
+                            status: StatusEnum['ERROR'],
+                            message: 'No events for user.'
+                        });
+                    }
+                }).catch(err => {
+                    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                        status: StatusEnum['ERROR'],
+                        message: 'Internal server error'
+                    });
+                })
+            }
+        });
+    } else { //Case where the user is not authorized
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+            status: StatusEnum['ERROR'],
+            message: 'Unauthorized access.'
+        });
+    }
+
+
 };
 
-//Event can only be retrieved if the user is from the same company as the event
 const retrieveById = (req, res) => {
     const eventId = req.params.id;
-    const companyId = req.body.companyId;
+    const user = req.decoded;
 
-    Event.findById(eventId).then((event) => {
+    if (!eventId || !user) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            status: StatusEnum['ERROR'],
+            message: 'Bad request'
+        });
+    }
+
+    Event.findOne({
+        _id: new ObjectId(eventId),
+        companyID: new ObjectId(user.companyID)
+    }).then(event => {
         if (event) {
-            const response = {
-                event: event
-            };
-
-            return res.status(HttpStatus.OK).json(response);
+            //If the user is admin then we can send him the event
+            if (ValidationUtil.isUserAdmin(user.accessType)) {
+                return res.status(HttpStatus.OK).json(event);
+            //If the user is regular, we need to check for the invite
+            } else {
+                Invite.findOne({ userID: new ObjectId(user._id), eventID: new ObjectId(event._id) })
+                    .then(invite => {
+                        if (invite) { //If the invite exists we return the event
+                            return res.status(HttpStatus.OK).json(event);
+                        }else{
+                            return res.status(HttpStatus.NOT_FOUND).json({
+                                status: StatusEnum['ERROR'],
+                                message: 'Event not found.'
+                            });
+                        }
+                    }).catch(err => {
+                        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                            status: StatusEnum['ERROR'],
+                            message: 'Internal server error.'
+                        });
+                    });
+            }
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: 'Error',
+                status: StatusEnum['ERROR'],
                 message: 'Event not found.'
             });
         }
     }).catch(err => {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-            status: 'Error',
-            message: 'Event not found'
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            status: StatusEnum['ERROR'],
+            message: 'Internal server error.'
         });
     });
 };
