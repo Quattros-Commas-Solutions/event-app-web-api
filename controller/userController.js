@@ -94,8 +94,8 @@ const token = (req, res) => {
 
 const create = (req, res) => {
     const user = new User(req.body);
-    const loggedUser = {};
-    loggedUser.companyID = user.companyID;
+    const loggedUser = req.decoded;
+
     // Logged user can only create new users within his company 
     if (loggedUser.companyID != user.companyID) {
         return res.status(HttpStatus.BAD_REQUEST).json({
