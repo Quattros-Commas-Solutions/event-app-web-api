@@ -9,6 +9,7 @@ const userTypeController = require('./controller/userTypeController');
 const userController = require('./controller/userController');
 const companyController = require('./controller/companyController');
 const eventQuestionController = require('./controller/eventQuestionController');
+const responseTypeController = require('./controller/responseTypeController');
 
 //Setting the default route
 router.get('/', auth, (req, res) => {
@@ -46,6 +47,10 @@ router.delete('/event-question/:id', auth, (req, res) => eventQuestionController
 router.patch('/event-question', auth, (req, res) => eventQuestionController.update(req, res));
 router.post('/event-question/response', auth, (req, res) => eventQuestionController.addResponseToEvent(req, res));
 router.delete('/event-question/response/:eventQuestionId/:responseId', auth, (req, res) => eventQuestionController.deleteResponse(req, res));
+
+// ResponseType routes
+router.get('/response-type', (req, resp) => responseTypeController.getAll(req, resp));
+router.get('/response-type/:id', (req, resp) => responseTypeController.getByValue(req,resp));
 
 //Exporting the router
 module.exports = router;
