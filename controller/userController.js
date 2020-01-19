@@ -183,8 +183,9 @@ const retrieveById = (req, res) => {
 };
 
 const update = (req, res) => {
-    const userId = req.params.id;
-    if (userId.length != AppConfig.OBJECT_ID_LEN) {
+    const loggedUser = req.decoded;
+
+    if (!ValidationUtil.isValidObjectId(loggedUser._id)) {
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: StatusEnum['ERROR'],
             message: 'Invalid ID'
