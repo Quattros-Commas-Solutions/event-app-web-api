@@ -21,16 +21,17 @@ const create = (req, res) => {
     // TODO: AdminAuth MW
     // TODO: add new user to eventGroup (update eventGroup.users)
     // TODO: remove user from eventGroup
-    const eventGroup = new EventGroup(req.body);
+    let eventGroup = new EventGroup(req.body);
     if (!ValidationUtil.isValidObjectId(eventGroup.eventID.toString()) || !ValidationUtil.isValidObjectId(loggedUser.companyID)) {
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: StatusEnum['ERROR'],
             message: 'Invalid ID'
         });
     }
+    eventGroup.companyID = loggedUser.companyID
 
     // Check if event exists 
-    Event.findOne({ _id: eventGroup.eventID, companyID: loggedUser.companyID }).then(event => {
+    Event.findOne({ _id: eventGroup.eventID, companyID: eventGroup.companyID }).then(event => {
         if (event) {
             eventGroup.save().then(() => {
                 return res.status(HttpStatus.CREATED).json(eventGroup);
@@ -84,14 +85,7 @@ const retrieveAll = (req, res) => {
     } else {
         // Employees can only retrieve event groups in which they're part of
         EventGroup.find({ companyID: loggedUser.companyID, users: { "$in": [loggedUser._id] } }).then(eventGroups => {
-            if (eventGroups) {
-                return res.status(HttpStatus.OK).json(eventGroups);
-            } else {
-                return res.status(HttpStatus.NOT_FOUND).json({
-                    status: StatusEnum['ERROR'],
-                    message: 'Event groups not found.'
-                });
-            }
+            return res.status(HttpStatus.OK).json(eventGroups);
         }).catch(err => {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                 status: StatusEnum['ERROR'],
@@ -159,7 +153,7 @@ const update = (req, res) => {
         });
     }
 
-    const eventGroup = new EventGroup(req.body);
+    let eventGroup = new EventGroup(req.body);
     eventGroup.companyID = loggedUser.companyID
 
     EventGroup.findOneAndUpdate({ _id: eventGroup._id, companyID: eventGroup.companyID }, eventGroup, { useFindAndModify: false, new: true, runValidators: true }).then(eventGroup => {
