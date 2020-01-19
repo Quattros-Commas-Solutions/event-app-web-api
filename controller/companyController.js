@@ -25,6 +25,21 @@ const create = (req, res) => {
 
 };
 
+// to be used by our own internal app for managing companies
+// as such authentication is left out at the moment until we figure out how to do it => PERHAPS another user-type?
+const getAll = (req, res) => {
+
+    Company.find({}).then(companies => {
+        return res.status(HttpStatus.OK).json(companies);
+    }).catch(err => {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            status: StatusEnum['ERROR'],
+            message: 'Internal server error'
+        });
+    })
+
+};
+
 // information about company can only be retrieved if it is an employee of the company
 const getById = (req, res) => {
 
@@ -38,7 +53,6 @@ const getById = (req, res) => {
         });
     }
 
-    // we only need the companyID
     if (user.companyID.toString() === companyId) {
         Company.findById(companyId, { _id: 0 }).then(company => {
             if (!company) {
@@ -63,7 +77,6 @@ const getById = (req, res) => {
 
 };
 
-// since we are the ones creating the companies directly
 const update = (req, res) => {
 
     const company = req.body.company;
@@ -129,9 +142,11 @@ const deleteCompany = (req, res) => {
             message: 'Internal server error'
         });
     });
+
 };
 
 const getByNameContains = (req, res) => {
+
     const companyName = req.params.name;
     const user = req.decoded;
 
@@ -165,6 +180,7 @@ const getByNameContains = (req, res) => {
 module.exports = {
     create,
     getById,
+    getAll,
     update,
     deleteCompany,
     getByNameContains

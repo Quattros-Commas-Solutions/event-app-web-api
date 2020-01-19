@@ -34,6 +34,7 @@ router.get('/user-types', auth, userTypeController.getAll);
 
 // Company routes
 router.post('/company', (req, res) => companyController.create(req, res));
+router.get('/company', (req, res) => companyController.getAll(req, res));
 router.get('/company/:id', auth, (req, res) => companyController.getById(req, res));
 router.patch('/company', auth, (req, res) => companyController.update(req, res));
 router.delete('/company/:id', (req, res) => companyController.deleteCompany(req, res));
@@ -41,6 +42,7 @@ router.get('/company/get-by-name/:name', auth, (req, res) => companyController.g
 
 // EventQuestion routes 
 router.post('/event-question', auth, (req, res) => eventQuestionController.create(req, res));
+router.get('/event-question', auth, (req, res) => eventQuestionController.getAll(req, res));
 router.get('/event-question/:id', auth, (req, res) => eventQuestionController.getById(req, res));
 router.delete('/event-question/:id', auth, (req, res) => eventQuestionController.deleteById(req, res));
 router.patch('/event-question', auth, (req, res) => eventQuestionController.update(req, res));
