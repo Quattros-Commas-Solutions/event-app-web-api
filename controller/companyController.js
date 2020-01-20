@@ -89,29 +89,20 @@ const update = (req, res) => {
         });
     }
 
-    // only the admin/super-admin level users of the company can issue an update
-    if (ValidationUtil.isUserAdmin(user.accessType) && user.companyID.toString() === company.id) {
-        Company.findByIdAndUpdate(company.id, company, { useFindAndModify: false, new: true, runValidators: true }).then(model => {
-            if (!model) {
-                return res.status(HttpStatus.NOT_FOUND).json({
-                    status: StatusEnum['ERROR'],
-                    message: `Company with ID '${company.id}' not found`
-                });
-            }
-            return res.status(HttpStatus.OK).json(model);
-        }).catch(err => {
-            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+    Company.findByIdAndUpdate(company.id, company, { useFindAndModify: false, new: true, runValidators: true }).then(model => {
+        if (!model) {
+            return res.status(HttpStatus.NOT_FOUND).json({
                 status: StatusEnum['ERROR'],
-                message: ValidationUtil.buildErrorMessage(err, 'update', 'company')
+                message: `Company with ID '${company.id}' not found`
             });
-        });
-    } else {
-        return res.status(HttpStatus.UNAUTHORIZED).json({
+        }
+        return res.status(HttpStatus.OK).json(model);
+    }).catch(err => {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             status: StatusEnum['ERROR'],
-            message: 'Unauthorized access'
+            message: ValidationUtil.buildErrorMessage(err, 'update', 'company')
         });
-    }
-
+    });
 };
 
 // delete by itself is a keyword
