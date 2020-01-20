@@ -84,7 +84,7 @@ const retrieveAll = (req, res) => {
         });
     } else {
         // Employees can only retrieve event groups in which they're part of
-        EventGroup.find({ companyID: loggedUser.companyID, users: { "$in": [loggedUser._id] } }).then(eventGroups => {
+        EventGroup.find({ companyID: loggedUser.companyID, users: { '$in': [loggedUser._id] } }).then(eventGroups => {
             return res.status(HttpStatus.OK).json(eventGroups);
         }).catch(err => {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
@@ -125,7 +125,7 @@ const retrieveById = (req, res) => {
         });
     } else {
         // Employees can only retrieve event groups in which they're part of
-        EventGroup.find({ _id: eventGroupId, companyID: loggedUser.companyID, users: { "$in": [loggedUser._id] } }).then(eventGroups => {
+        EventGroup.find({ _id: eventGroupId, companyID: loggedUser.companyID, users: { '$in': [loggedUser._id] } }).then(eventGroups => {
             if (eventGroups) {
                 return res.status(HttpStatus.OK).json(eventGroups);
             } else {
