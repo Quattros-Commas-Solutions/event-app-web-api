@@ -23,12 +23,6 @@ const create = (req, res) => {
     eventQuestion.userID = user._id;
     eventQuestion.companyID = user.companyID;
 
-    if (user.companyID.toString() !== eventQuestion.companyID.toString()) {
-        return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
-            message: 'Unauthorized'
-        });
-    }
 
     // we must make sure that it is an event of the company the user is part
     Event.findOne({ _id: new ObjectId(eventQuestion.eventID), companyID: new ObjectId(eventQuestion.companyID) }).then(event => {
