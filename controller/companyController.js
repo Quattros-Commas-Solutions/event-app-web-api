@@ -89,20 +89,27 @@ const update = (req, res) => {
         });
     }
 
-    Company.findByIdAndUpdate(company.id, company, { useFindAndModify: false, new: true, runValidators: true }).then(model => {
-        if (!model) {
-            return res.status(HttpStatus.NOT_FOUND).json({
+    if (user.companyID.toString() === company.id) {
+        Company.findByIdAndUpdate(company.id, company, { useFindAndModify: false, new: true, runValidators: true }).then(model => {
+            if (!model) {
+                return res.status(HttpStatus.NOT_FOUND).json({
+                    status: StatusEnum['ERROR'],
+                    message: `Company with ID '${company.id}' not found`
+                });
+            }
+            return res.status(HttpStatus.OK).json(model);
+        }).catch(err => {
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                 status: StatusEnum['ERROR'],
-                message: `Company with ID '${company.id}' not found`
+                message: ValidationUtil.buildErrorMessage(err, 'update', 'company')
             });
-        }
-        return res.status(HttpStatus.OK).json(model);
-    }).catch(err => {
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
-            message: ValidationUtil.buildErrorMessage(err, 'update', 'company')
         });
-    });
+    } else {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+            status: StatusEnum['ERROR'],
+            message: 'Unauthorized access'
+        });
+    }
 };
 
 // delete by itself is a keyword
