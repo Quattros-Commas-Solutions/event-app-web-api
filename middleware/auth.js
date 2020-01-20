@@ -1,12 +1,11 @@
 const jwt = require('jsonwebtoken');
 const AppConfig = require('../config').AppConfig;
 const ValidationUtil = require('../util/validationUtil');
-const UserTypeEnum = require('../model/enums').UserTypeEnum;
 
 const HttpStatus = require('http-status-codes');
 
 const Auth = (req, res, next) => {
-    const token = req.headers["x-access-token"] || req.headers['authorization'];
+    const token = req.headers['x-access-token'] || req.headers['authorization'];
 
     // Decode token
     if (token) {
@@ -29,7 +28,7 @@ const Auth = (req, res, next) => {
 }
 
 const AdminAuth = (req, res, next) => {
-    const token = req.headers["x-access-token"] || req.headers['authorization'];
+    const token = req.headers['x-access-token'] || req.headers['authorization'];
 
     // Decode token
     if (token) {

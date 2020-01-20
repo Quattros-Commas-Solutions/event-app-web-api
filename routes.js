@@ -3,7 +3,6 @@ const HttpStatus = require('http-status-codes');
 const jwt = require('jsonwebtoken');
 const Auth = require('./middleware/auth').Auth;
 const AdminAuth = require('./middleware/auth').AdminAuth;
-const AppConfig = require('./config').AppConfig;
 
 //Importing controllers
 const userTypeController = require('./controller/userTypeController');
