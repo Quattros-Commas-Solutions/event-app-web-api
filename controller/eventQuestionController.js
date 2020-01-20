@@ -49,6 +49,28 @@ const create = (req, res) => {
 
 };
 
+const getAll = (req, res) => {
+
+    const user = req.decoded;
+
+    if (!user) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            status: StatusEnum['ERROR'],
+            message: 'Bad request'
+        });
+    }
+
+    EventQuestion.find({ companyID: user.companyID }).then(eventQuestions => {
+        return res.status(HttpStatus.OK).json(eventQuestions);
+    }).catch(err => {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            status: StatusEnum['ERROR'],
+            message: 'Internal server error'
+        });
+    });
+
+};
+
 const getById = (req, res) => {
 
     const eventQuestionId = req.params.id;
@@ -235,6 +257,7 @@ const deleteResponse = (req, res) => {
 module.exports = {
     create,
     getById,
+    getAll,
     deleteById,
     addResponseToEvent,
     update,
