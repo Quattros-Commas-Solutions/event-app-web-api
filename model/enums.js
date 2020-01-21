@@ -4,6 +4,12 @@ const UserTypeEnum = {
     'Employee': 2
 };
 
+const ResponseTypeEnum = {
+    'Pending': 0,
+    'Accepted': 1,
+    'Declined': 2
+};
+
 const StatusEnum = {
     'ERROR': 'Error',
     'SUCCESS': 'Success'
@@ -11,6 +17,7 @@ const StatusEnum = {
 
 module.exports = {
     UserTypeEnum,
+    ResponseTypeEnum,
     StatusEnum
 };
 

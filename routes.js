@@ -1,8 +1,6 @@
 const router = require('express').Router();
 const HttpStatus = require('http-status-codes');
-const jwt = require('jsonwebtoken');
-const auth = require('./middleware/auth')
-const AppConfig = require('./config').AppConfig;
+const auth = require('./middleware/auth');
 
 //Importing controllers
 const eventController = require('./controller/eventController');
@@ -16,7 +14,6 @@ router.get('/', auth, (req, res) => {
         status: 'Success',
         message: 'Event App root route is working!'
     });
-    // });
 });
 
 // User routes 
