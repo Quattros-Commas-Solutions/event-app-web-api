@@ -4,7 +4,8 @@ Restful API written implemented with Node.js Express module. Used as a backend p
 After the initial pull do the folllowing things:
 -
 - npm install - to install all the necessary modules required to run the program
-- nodemon app.js - to start the app in nodemon mode, enabling you to restart the app whenever you save any changes made to the code
+- npm run start - runs the app in production mode
+- npm run dev - runs the app in development mode (using nodemon)
 
 When developing a feature:
 -
