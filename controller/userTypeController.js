@@ -71,7 +71,7 @@ const getById = (req, res) => {
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: 'Error',
+            status: StatusEnum['ERROR'],
             message: 'Internal server error.'
         });
     });
@@ -90,13 +90,13 @@ const update = (req, res) => {
                     'update',
                     'user type');
                 return res.status(HttpStatus.BAD_REQUEST).json({
-                    status: 'Error',
+                    status: StatusEnum['ERROR'],
                     message: errorMessage
                 });
             })
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: 'Error',
+                status: StatusEnum['ERROR'],
                 message: 'User type not found.'
             });
         }
