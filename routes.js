@@ -9,11 +9,8 @@ const userTypeController = require('./controller/userTypeController');
 const userController = require('./controller/userController');
 const companyController = require('./controller/companyController');
 const eventQuestionController = require('./controller/eventQuestionController');
-<<<<<<< HEAD
 const responseTypeController = require('./controller/responseTypeController');
-=======
 const eventGropController = require('./controller/eventGroupController');
->>>>>>> b81e372384b2a92d3d6678ceb716855aa29c7aad
 
 //Setting the default route
 router.get('/', auth, (req, res) => {
