@@ -20,7 +20,16 @@ const create = (req, res) => {
 };
 
 //Every user can get all of the user types so no validation for user or company needed
-const retrieveAll = (req, res) => {
+const getAll = (req, res) => {
+    const user = req.decoded;
+
+    if (!user) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            status: StatusEnum['ERROR'],
+            message: 'Bad request.'
+        });
+    }
+
     UserType.find({}, { _id: 0 }).then(userTypes => {
         if (userTypes) {
             return res.status(HttpStatus.OK).json(userTypes);
@@ -40,8 +49,16 @@ const retrieveAll = (req, res) => {
 
 
 //Every user can retrieve any of the user types so no user validation required
-const retrieveById = (req, res) => {
+const getById = (req, res) => {
     const userTypeId = req.params.id;
+    const user = req.decoded;
+
+    if (!user) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            status: StatusEnum['ERROR'],
+            message: 'Bad request.'
+        });
+    }
 
     UserType.findById(userTypeId).then(userType => {
         if (userType) {
@@ -110,8 +127,8 @@ const remove = (req, res) => {
 //Retrieve all user types
 module.exports = {
     create,
-    retrieveAll,
-    retrieveById,
+    getAll,
+    getById,
     update,
     remove
 };
