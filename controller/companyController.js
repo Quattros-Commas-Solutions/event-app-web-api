@@ -145,29 +145,22 @@ const deleteCompany = (req, res) => {
 
 };
 
+// to be used by our internal app for managing companies and super-admins
+// authorization to be done by special user-type and auth middleware layer perhaps?
 const getByNameContains = (req, res) => {
 
     const companyName = req.params.name;
-    const user = req.decoded;
 
-    if (!companyName || !user) {
+    if (!companyName) {
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: StatusEnum['ERROR'],
             message: 'Bad request'
         });
     }
 
-    // since a user can be only part of one company, only one is being sent back
     // case insensitive search
-    Company.findOne({ name: { $regex: `.*${companyName}.*`, '$options': 'i' }, _id: new Mongoose.Types.ObjectId(user.companyID) }, { _id: 0 }).then(company => {
-        if (company) {
-            return res.status(HttpStatus.OK).json(company);
-        } else {
-            return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
-                message: 'Company not found'
-            });
-        }
+    Company.find({ name: { $regex: `.*${companyName}.*`, '$options': 'i' } }).then(companies => {
+        return res.status(HttpStatus.OK).json(companies);
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             status: StatusEnum['ERROR'],
