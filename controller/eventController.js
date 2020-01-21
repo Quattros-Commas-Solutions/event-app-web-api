@@ -9,7 +9,7 @@ const StatusEnum = require('../model/enums').StatusEnum;
 const create = (req, res) => {
     const user = req.decoded;
 
-    //Only admins can create event objets
+    //Only admins can create event objects
     if (!user || !ValidationUtil.isUserAdmin(user.accessType)) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
             status: StatusEnum['ERROR'],
@@ -30,7 +30,7 @@ const create = (req, res) => {
     });
 };
 
-const retrieveAll = (req, res) => {
+const getAll = (req, res) => {
     const user = req.decoded;
     const companyId = user.companyID;
 
@@ -95,7 +95,7 @@ const retrieveAll = (req, res) => {
 
 };
 
-const retrieveById = (req, res) => {
+const getById = (req, res) => {
     const eventId = req.params.id;
     const user = req.decoded;
 
@@ -148,17 +148,76 @@ const retrieveById = (req, res) => {
 };
 
 const update = (req, res) => {
-    const userCompanyId = req.decoded.companyID;
     const eventId = req.params.id;
+    const user = req.decoded;
 
-    Event.findById(eventId).then((event) => {
-        event
-    })
+    //Only admins can update event objects
+    if (!user || !ValidationUtil.isUserAdmin(user.accessType)) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+            status: StatusEnum['ERROR'],
+            message: 'Unauhorized.'
+        })
+    }
+
+    //TO DISCUSS
+    //When updating a field that previusly didn't exist, update works 
+    //but response returns an object without the new field
+    //how to solve it?
+
+    Event.findOneAndUpdate({_id: new ObjectId(eventId), companyID: new ObjectId(user.companyID)},
+        req.body,{runValidators: true}).then(event => {
+            if(event){
+                return res.status(HttpStatus.OK).json(event);
+            }else{
+                return res.status(HttpStatus.NOT_FOUND).json({
+                    status: StatusEnum['ERROR'],
+                    message: 'Event not found.'
+                });
+            }
+        }).catch(err => {
+            const errorMessage = ValidationUtil.buildErrorMessage(err, 'update', 'event');
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                status: StatusEnum['ERROR'],
+                message: errorMessage
+            });
+        });
+};
+
+//Remove only sets the active field to false, the event stays in the database
+const remove = (req, res) => {
+    const eventId = req.params.id;
+    const user = req.decoded;
+
+    //Only admins can remove event objects
+    if (!user || !ValidationUtil.isUserAdmin(user.accessType)) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+            status: StatusEnum['ERROR'],
+            message: 'Unauhorized.'
+        })
+    }
+    
+    Event.findOneAndUpdate({_id: new ObjectId(eventId), companyID: new ObjectId(user.companyID)}, {active: false})
+        .then(event => {
+            if(event){
+                return res.status(HttpStatus.OK).json(event);
+            }else{
+                return res.status(HttpStatus.NOT_FOUND).json({
+                    status: StatusEnum['ERROR'],
+                    message: 'Event not found.'
+                });
+            }
+        }).catch(err => {
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                status: StatusEnum['ERROR'],
+                message: 'Internal server error.'
+            });
+        });
 };
 
 module.exports = {
     create,
-    retrieveAll,
-    retrieveById,
-    update
+    getAll,
+    getById,
+    update,
+    remove
 };

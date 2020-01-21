@@ -30,9 +30,11 @@ router.post('/user/login', (req, res) => userController.login(req, res));
 router.get('/user/token', auth, (req, res) => userController.token(req, res));
 
 //Event routes
-router.get('/event', auth, (req,res) => eventController.retrieveAll(req, res));
+router.get('/event', auth, (req,res) => eventController.getAll(req, res));
 router.post('/event', auth, (req,res) => eventController.create(req, res));
-router.get('/event/:id', auth, (req,res) => eventController.retrieveById(req, res));
+router.get('/event/:id', auth, (req,res) => eventController.getById(req, res));
+router.post('/event/:id', auth, (req, res) => eventController.update(req, res));
+router.delete('/event/:id', auth, (req, res) => eventController.remove(req, res));
 
 
 // Company routes
