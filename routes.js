@@ -49,8 +49,8 @@ router.post('/event-question/response', auth, (req, res) => eventQuestionControl
 router.delete('/event-question/response/:eventQuestionId/:responseId', auth, (req, res) => eventQuestionController.deleteResponse(req, res));
 
 // ResponseType routes
-router.get('/response-type', (req, resp) => responseTypeController.getAll(req, resp));
-router.get('/response-type/:id', (req, resp) => responseTypeController.getByValue(req,resp));
+router.get('/response-type', auth, (req, res) => responseTypeController.getAll(req, res));
+router.get('/response-type/:value', auth,  (req, res) => responseTypeController.getByValue(req,res));
 
 //Exporting the router
 module.exports = router;
