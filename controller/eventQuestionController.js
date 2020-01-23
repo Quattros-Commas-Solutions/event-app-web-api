@@ -83,7 +83,7 @@ const getById = (req, res) => {
         });
     }
 
-    EventQuestion.findOne({ _id: new ObjectId(eventQuestionId), companyID: new ObjectId(user.companyID) }, { _id: 0, __v: 0 }).then(eventQuestion => {
+    EventQuestion.findOne({ _id: new ObjectId(eventQuestionId), companyID: new ObjectId(user.companyID) }, { __v: 0 }).then(eventQuestion => {
         if (!eventQuestion) {
             return res.status(HttpStatus.NOT_FOUND).json({
                 status: StatusEnum['ERROR'],

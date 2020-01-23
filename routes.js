@@ -7,6 +7,7 @@ const userTypeController = require('./controller/userTypeController');
 const userController = require('./controller/userController');
 const companyController = require('./controller/companyController');
 const eventQuestionController = require('./controller/eventQuestionController');
+const responseTypeController = require('./controller/responseTypeController');
 const eventGropController = require('./controller/eventGroupController');
 
 //Setting the default route
@@ -47,6 +48,10 @@ router.delete('/event-question/:id', auth.authAdmin, (req, res) => eventQuestion
 router.patch('/event-question', auth.authUser, (req, res) => eventQuestionController.update(req, res));
 router.post('/event-question/response', auth.authUser, (req, res) => eventQuestionController.addResponseToEvent(req, res));
 router.delete('/event-question/response/:eventQuestionId/:responseId', auth.authAdmin, (req, res) => eventQuestionController.deleteResponse(req, res));
+
+// ResponseType routes
+router.get('/response-type', auth, (req, res) => responseTypeController.getAll(req, res));
+router.get('/response-type/:value', auth,  (req, res) => responseTypeController.getByValue(req,res));
 
 // EventGroup routes
 router.get('/event-group', auth.authUser, (req, res) => eventGropController.retrieveAll(req, res))
