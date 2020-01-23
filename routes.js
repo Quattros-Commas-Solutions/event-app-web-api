@@ -29,15 +29,15 @@ router.post('/user/login', (req, res) => userController.login(req, res));
 router.get('/user/token', auth.authUser, (req, res) => userController.token(req, res));
 
 //Event routes
-router.get('/event', auth, (req,res) => eventController.getAll(req, res));
-router.post('/event', auth, (req,res) => eventController.create(req, res));
-router.get('/event/:id', auth, (req,res) => eventController.getById(req, res));
-router.post('/event/:id', auth, (req, res) => eventController.update(req, res));
-router.delete('/event/:id', auth, (req, res) => eventController.remove(req, res));
+router.get('/event', auth.authUser, (req,res) => eventController.getAll(req, res));
+router.post('/event', auth.authAdmin, (req,res) => eventController.create(req, res));
+router.get('/event/:id', auth.authUser, (req,res) => eventController.getById(req, res));
+router.post('/event/:id', auth.authAdmin, (req, res) => eventController.update(req, res));
+router.delete('/event/:id', auth.authAdmin, (req, res) => eventController.remove(req, res));
 
 //UserType routes
-router.get('/user-type', auth, (req, res) => userTypeController.getAll(req, res));
-router.get('/user-type/:id', auth, (req, res) => userTypeController.getById(req, res));
+router.get('/user-type', auth.authUser, (req, res) => userTypeController.getAll(req, res));
+router.get('/user-type/:id', auth.authUser, (req, res) => userTypeController.getById(req, res));
 
 // Company routes
 router.post('/company', auth.authAdmin, (req, res) => companyController.create(req, res));
