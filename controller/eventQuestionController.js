@@ -23,12 +23,6 @@ const create = (req, res) => {
     eventQuestion.userID = user._id;
     eventQuestion.companyID = user.companyID;
 
-    if (user.companyID.toString() !== eventQuestion.companyID.toString()) {
-        return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
-            message: 'Unauthorized'
-        });
-    }
 
     // we must make sure that it is an event of the company the user is part
     Event.findOne({ _id: new ObjectId(eventQuestion.eventID), companyID: new ObjectId(eventQuestion.companyID) }).then(event => {
@@ -55,6 +49,28 @@ const create = (req, res) => {
 
 };
 
+const getAll = (req, res) => {
+
+    const user = req.decoded;
+
+    if (!user) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            status: StatusEnum['ERROR'],
+            message: 'Bad request'
+        });
+    }
+
+    EventQuestion.find({ companyID: user.companyID }).then(eventQuestions => {
+        return res.status(HttpStatus.OK).json(eventQuestions);
+    }).catch(err => {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            status: StatusEnum['ERROR'],
+            message: 'Internal server error'
+        });
+    });
+
+};
+
 const getById = (req, res) => {
 
     const eventQuestionId = req.params.id;
@@ -67,14 +83,7 @@ const getById = (req, res) => {
         });
     }
 
-    if (!ValidationUtil.isUserAdmin(user.accessType)) {
-        return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
-            message: 'Unauthorized'
-        });
-    }
-
-    EventQuestion.findOne({ _id: new ObjectId(eventQuestionId), companyID: new ObjectId(user.companyID) }, { _id: 0, __v: 0 }).then(eventQuestion => {
+    EventQuestion.findOne({ _id: new ObjectId(eventQuestionId), companyID: new ObjectId(user.companyID) }, { __v: 0 }).then(eventQuestion => {
         if (!eventQuestion) {
             return res.status(HttpStatus.NOT_FOUND).json({
                 status: StatusEnum['ERROR'],
@@ -100,13 +109,6 @@ const deleteById = (req, res) => {
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: StatusEnum['ERROR'],
             message: 'Bad request'
-        });
-    }
-
-    if (!ValidationUtil.isUserAdmin(user.accessType)) {
-        return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
-            message: 'Unauthorized'
         });
     }
 
@@ -214,13 +216,6 @@ const deleteResponse = (req, res) => {
         });
     }
 
-    if (!ValidationUtil.isUserAdmin(user.accessType)) {
-        return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
-            message: 'Unauthorized'
-        });
-    }
-
     EventQuestion.findOneAndUpdate({ _id: new ObjectId(eventQuestionId), companyID: new ObjectId(user.companyID) }, { $pull: { responses: { _id: responseId } } }, { useFindAndModify: false, new: true, runValidators: true }).then(eventQuestion => {
         if (!eventQuestion) {
             return res.status(HttpStatus.NOT_FOUND).json({
@@ -241,6 +236,7 @@ const deleteResponse = (req, res) => {
 module.exports = {
     create,
     getById,
+    getAll,
     deleteById,
     addResponseToEvent,
     update,

@@ -23,7 +23,7 @@ const buildErrorMessage = (err, action, entity) => {
 
 const isValidObjectId = (id) => { return id && id.length === AppConfig.OBJECT_ID_LEN; }
 
-const isUserAdmin = (accessType) => { return accessType in [UserTypeEnum['Admin'], UserTypeEnum['Super-Admin']]; }
+const isUserAdmin = (accessType) => { return accessType < UserTypeEnum['Employee']; }
 
 module.exports = {
     buildErrorMessage,
