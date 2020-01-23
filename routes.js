@@ -3,7 +3,7 @@ const HttpStatus = require('http-status-codes');
 const auth = require('./middleware/auth');
 
 //Importing controllers
-const userTypeController = require('./controller/userTypeController');
+const eventController = require('./controller/eventController');
 const userController = require('./controller/userController');
 const companyController = require('./controller/companyController');
 const eventQuestionController = require('./controller/eventQuestionController');
@@ -16,7 +16,6 @@ router.get('/', auth.authUser, (req, res) => {
         status: 'Success',
         message: 'Event App root route is working!'
     });
-    // });
 });
 
 // User routes 
@@ -29,8 +28,12 @@ router.delete('/user/:id', auth.authAdmin, (req, res) => userController.remove(r
 router.post('/user/login', (req, res) => userController.login(req, res));
 router.get('/user/token', auth.authUser, (req, res) => userController.token(req, res));
 
-//UserType routes
-router.get('/user-types', auth.authUser, userTypeController.getAll);
+//Event routes
+router.get('/event', auth, (req,res) => eventController.getAll(req, res));
+router.post('/event', auth, (req,res) => eventController.create(req, res));
+router.get('/event/:id', auth, (req,res) => eventController.getById(req, res));
+router.post('/event/:id', auth, (req, res) => eventController.update(req, res));
+router.delete('/event/:id', auth, (req, res) => eventController.remove(req, res));
 
 // Company routes
 router.post('/company', auth.authAdmin, (req, res) => companyController.create(req, res));
