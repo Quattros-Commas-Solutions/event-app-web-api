@@ -89,8 +89,7 @@ const update = (req, res) => {
         });
     }
 
-    // only the admin/super-admin level users of the company can issue an update
-    if (ValidationUtil.isUserAdmin(user.accessType) && user.companyID.toString() === company.id) {
+    if (user.companyID.toString() === company.id) {
         Company.findByIdAndUpdate(company.id, company, { useFindAndModify: false, new: true, runValidators: true }).then(model => {
             if (!model) {
                 return res.status(HttpStatus.NOT_FOUND).json({
@@ -111,7 +110,6 @@ const update = (req, res) => {
             message: 'Unauthorized access'
         });
     }
-
 };
 
 // delete by itself is a keyword

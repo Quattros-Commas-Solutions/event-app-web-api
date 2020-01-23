@@ -1,9 +1,20 @@
 const jwt = require('jsonwebtoken');
 const AppConfig = require('../config').AppConfig;
+const ValidationUtil = require('../util/validationUtil');
+
 const HttpStatus = require('http-status-codes');
 
-module.exports = (req, res, next) => {
-    const token = req.headers["x-access-token"] || req.headers['authorization'];
+const authUser = (req, res, next) => {
+    return authHelper(req, res, next);
+};
+
+const authAdmin = (req, res, next) => {
+    return authHelper(req, res, next, ValidationUtil.isUserAdmin);
+};
+
+const authHelper = (req, res, next, checkAuthorizationCallback) => {
+
+    const token = req.headers['x-access-token'] || req.headers['authorization'];
 
     // Decode token
     if (token) {
@@ -13,14 +24,43 @@ module.exports = (req, res, next) => {
         }
         // Verify token
         jwt.verify(token, AppConfig.SECRET, function (err, decoded) {
-            if (err) {
-                return res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: 'Unauthorized access.' });
+            if (!err) {
+                // If checkAccessType is true => (super)admin-specific route
+                if (checkAuthorizationCallback && checkAuthorizationCallback(decoded.accessType)) {
+                    req.decoded = decoded;
+                    next();
+                }
+                // If checkAccessType is false => available for all logged users
+                else if (!checkAuthorizationCallback) {
+                    req.decoded = decoded;
+                    next();
+                } else {
+                    // Logged user can't access (super)admin-specific routes
+                    return res.status(HttpStatus.UNAUTHORIZED).json({
+                        success: false,
+                        message: 'Unauthorized access.'
+                    });
+                }
             } else {
-                req.decoded = decoded;
-                next();
+                res.status(HttpStatus.UNAUTHORIZED).json({
+                    error: true,
+                    success: false,
+                    message: 'Unauthorized access.'
+                });
             }
         });
     } else {
-        return res.status(HttpStatus.FORBIDDEN).json({ success: false, message: 'No token provided.' });
+        res.status(HttpStatus.FORBIDDEN).json({
+            error: true,
+            success: false,
+            message: 'No token provided.'
+        });
     }
+
 }
+
+
+module.exports = {
+    authUser,
+    authAdmin
+};

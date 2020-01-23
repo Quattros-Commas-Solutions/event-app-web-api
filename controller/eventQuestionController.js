@@ -112,14 +112,7 @@ const deleteById = (req, res) => {
         });
     }
 
-    if (!ValidationUtil.isUserAdmin(user.accessType)) {
-        return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
-            message: 'Unauthorized'
-        });
-    }
-
-    EventQuestion.findOneAndDelete({ _id: new ObjectId(eventQuestionId), companyID: user.companyID }, { __v: 0 }).then(eventQuestion => {
+    EventQuestion.findOneAndDelete({ _id: new ObjectId(eventQuestionId), companyID: user.companyID }).then(eventQuestion => {
         if (eventQuestion) {
             return res.status(HttpStatus.OK).json(eventQuestion);
         } else {
@@ -220,13 +213,6 @@ const deleteResponse = (req, res) => {
         return res.status(HttpStatus.BAD_REQUEST).json({
             status: StatusEnum['ERROR'],
             message: 'Bad request'
-        });
-    }
-
-    if (!ValidationUtil.isUserAdmin(user.accessType)) {
-        return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
-            message: 'Unauthorized'
         });
     }
 
