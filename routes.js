@@ -35,6 +35,10 @@ router.get('/event/:id', auth, (req,res) => eventController.getById(req, res));
 router.post('/event/:id', auth, (req, res) => eventController.update(req, res));
 router.delete('/event/:id', auth, (req, res) => eventController.remove(req, res));
 
+//UserType routes
+router.get('/user-type', auth, (req, res) => userTypeController.getAll(req, res));
+router.get('/user-type/:id', auth, (req, res) => userTypeController.getById(req, res));
+
 // Company routes
 router.post('/company', auth.authAdmin, (req, res) => companyController.create(req, res));
 router.get('/company', auth.authAdmin, (req, res) => companyController.getAll(req, res));
