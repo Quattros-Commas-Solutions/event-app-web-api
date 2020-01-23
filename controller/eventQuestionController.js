@@ -6,6 +6,8 @@ const EventQuestion = require('../model/eventQuestionModel');
 const Event = require('../model/eventModel');
 const ValidationUtil = require('../util/validationUtil');
 const StatusEnum = require('../model/enums').StatusEnum;
+const ResponseTypeEnum = require('../model/enums').ResponseTypeEnum;
+const Invite = require('../model/inviteModel');
 
 const create = (req, res) => {
 
@@ -153,19 +155,33 @@ const addResponseToEvent = (req, res) => {
         }
     };
 
-    // allow commenting only on company events; TODO: additional check if user has accepted invite for event (after test data and controller for invite are made)
-    EventQuestion.findOneAndUpdate({ _id: new ObjectId(eventQuestionId), companyID: user.companyID }, { $push: { responses: response } }, { useFindAndModify: false, new: true, runValidators: true }).then(eventQuestion => {
-        if (!eventQuestion) {
-            return res.status(HttpStatus.NOT_FOUND).json({
+    Invite.findOne({ userID: user._id, eventID: new ObjectId(eventQuestionId), responseType: ResponseTypeEnum['Accepted'] }, { __v: 0 }).then(invite => {
+        if (invite) {
+            // allow commenting only on company events
+            EventQuestion.findOneAndUpdate({ _id: new ObjectId(eventQuestionId), companyID: user.companyID }, { $push: { responses: response } }, { useFindAndModify: false, new: true, runValidators: true }).then(eventQuestion => {
+                if (!eventQuestion) {
+                    return res.status(HttpStatus.NOT_FOUND).json({
+                        status: StatusEnum['ERROR'],
+                        message: 'Event question not found'
+                    });
+                }
+                return res.status(HttpStatus.OK).json(eventQuestion.responses[eventQuestion.responses.length - 1]); // return last entry; TODO: find a better way: perhaps sort by time and take last one
+            }).catch(err => {
+                return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                    status: StatusEnum['ERROR'],
+                    message: ValidationUtil.buildErrorMessage(err, 'update', 'eventQuestion')
+                });
+            });
+        } else {
+            return res.status(HttpStatus.UNAUTHORIZED).json({
                 status: StatusEnum['ERROR'],
-                message: 'Event question not found'
+                message: 'Unauthorized'
             });
         }
-        return res.status(HttpStatus.OK).json(eventQuestion.responses[eventQuestion.responses.length - 1]); // return last entry; TODO: find a better way: perhaps sort by time and take last one
     }).catch(err => {
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        return res.status(HttpStatus.UNAUTHORIZED).json({
             status: StatusEnum['ERROR'],
-            message: ValidationUtil.buildErrorMessage(err, 'update', 'eventQuestion')
+            message: 'Unauthorized'
         });
     });
 
