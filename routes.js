@@ -9,6 +9,7 @@ const companyController = require('./controller/companyController');
 const eventQuestionController = require('./controller/eventQuestionController');
 const responseTypeController = require('./controller/responseTypeController');
 const eventGropController = require('./controller/eventGroupController');
+const inviteController = require('./controller/inviteController');
 
 //Setting the default route
 router.get('/', auth.authUser, (req, res) => {
@@ -57,8 +58,8 @@ router.post('/event-question/response', auth.authUser, (req, res) => eventQuesti
 router.delete('/event-question/response/:eventQuestionId/:responseId', auth.authAdmin, (req, res) => eventQuestionController.deleteResponse(req, res));
 
 // ResponseType routes
-router.get('/response-type', auth, (req, res) => responseTypeController.getAll(req, res));
-router.get('/response-type/:value', auth,  (req, res) => responseTypeController.getByValue(req,res));
+router.get('/response-type', auth.authUser, (req, res) => responseTypeController.getAll(req, res));
+router.get('/response-type/:value', auth.authUser,  (req, res) => responseTypeController.getByValue(req,res));
 
 // EventGroup routes
 router.get('/event-group', auth.authUser, (req, res) => eventGropController.retrieveAll(req, res))
@@ -67,6 +68,11 @@ router.get('/event-group/:id', auth.authUser, (req, res) => eventGropController.
 router.patch('/event-group', auth.authAdmin, (req, res) => eventGropController.update(req, res))
 router.delete('/event-group/:id', auth.authAdmin, (req, res) => eventGropController.remove(req, res))
 
+// Invite routes
+router.post('/invite', auth.authAdmin , (req, res) => inviteController.create(req, res));
+router.delete('/invite/:id', auth.authAdmin, (req,res) => inviteController.remove(req,res));
+router.get('/invite/:id', auth.authUser, (req, res) => inviteController.getById(req, res));
+router.put('/invite/:id', auth.authUser, (req, res) => inviteController.update(req, res));
 
 //Exporting the router
 module.exports = router;
