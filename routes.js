@@ -29,9 +29,9 @@ router.post('/user/login', (req, res) => userController.login(req, res));
 router.get('/user/token', auth.authUser, (req, res) => userController.token(req, res));
 
 //Event routes
-router.get('/event', auth.authUser, (req,res) => eventController.getAll(req, res));
-router.post('/event', auth.authAdmin, (req,res) => eventController.create(req, res));
-router.get('/event/:id', auth.authUser, (req,res) => eventController.getById(req, res));
+router.get('/event', auth.authUser, (req, res) => eventController.getAll(req, res));
+router.post('/event', auth.authAdmin, (req, res) => eventController.create(req, res));
+router.get('/event/:id', auth.authUser, (req, res) => eventController.getById(req, res));
 router.post('/event/:id', auth.authAdmin, (req, res) => eventController.update(req, res));
 router.delete('/event/:id', auth.authAdmin, (req, res) => eventController.remove(req, res));
 
@@ -49,16 +49,18 @@ router.get('/company/get-by-name/:name', auth.authAdmin, (req, res) => companyCo
 
 // EventQuestion routes 
 router.post('/event-question', auth.authUser, (req, res) => eventQuestionController.create(req, res));
-router.get('/event-question', auth.authUser, (req, res) => eventQuestionController.getAll(req, res));
+// this is kinda dumb, but the way it was set up before you were getting every event question for every event 
+// in the company, it is only natural that you would get only the ones for a specific event
+router.get('/event-question/all/:id', auth.authUser, (req, res) => eventQuestionController.getAll(req, res));
 router.get('/event-question/:id', auth.authAdmin, (req, res) => eventQuestionController.getById(req, res));
 router.delete('/event-question/:id', auth.authAdmin, (req, res) => eventQuestionController.deleteById(req, res));
 router.patch('/event-question', auth.authUser, (req, res) => eventQuestionController.update(req, res));
 router.post('/event-question/response', auth.authUser, (req, res) => eventQuestionController.addResponseToEvent(req, res));
-router.delete('/event-question/response/:eventQuestionId/:responseId', auth.authAdmin, (req, res) => eventQuestionController.deleteResponse(req, res));
+router.delete('/event-question/response/:eventQuestionID/:responseID', auth.authAdmin, (req, res) => eventQuestionController.deleteResponse(req, res));
 
 // ResponseType routes
-router.get('/response-type', auth, (req, res) => responseTypeController.getAll(req, res));
-router.get('/response-type/:value', auth,  (req, res) => responseTypeController.getByValue(req,res));
+router.get('/response-type', auth.authUser, (req, res) => responseTypeController.getAll(req, res));
+router.get('/response-type/:value', auth.authUser, (req, res) => responseTypeController.getByValue(req, res));
 
 // EventGroup routes
 router.get('/event-group', auth.authUser, (req, res) => eventGropController.retrieveAll(req, res))
