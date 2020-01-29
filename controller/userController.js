@@ -35,29 +35,23 @@ const login = (req, res) => {
 
                 // Generate response
                 const response = {
-                    auth: true,
-                    status: 'Logged in',
                     user: user,
                     token: token
                 };
-
                 return res.status(HttpStatus.OK).json(response);
             } else {
                 return res.status(HttpStatus.FORBIDDEN).json({
-                    status: StatusEnum['ERROR'],
                     message: 'Incorrect email or password'
                 });
             }
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'Please provide a valid email and password.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
-            message: 'Internal server error.'
+            message: ValidationUtil.buildErrorMessage(err, 'login', 'user')
         });
     });
 };
@@ -80,18 +74,16 @@ const token = (req, res) => {
                 return res.status(HttpStatus.OK).json(response);
             } else {
                 return res.status(HttpStatus.NOT_FOUND).json({
-                    status: StatusEnum['ERROR'],
                     message: 'User not found.'
                 });
             }
         }).catch(err => {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                status: StatusEnum['ERROR'],
-                message: 'Internal server error.'
+                message: ValidationUtil.buildErrorMessage(err, 'token', 'user')
             });
         });
     }
-}
+};
 
 const create = (req, res) => {
     const user = new User(req.body);
@@ -100,11 +92,9 @@ const create = (req, res) => {
     // Logged user can only create new users within his company 
     if (loggedUser.companyID != user.companyID) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
             message: 'Companies don\'t match'
         });
     }
-
 
     // Check if an user with the provided email exists
     User.findOne({ email: user.email }).then(obj => {
@@ -121,19 +111,17 @@ const create = (req, res) => {
             });
         } else {
             return res.status(HttpStatus.BAD_REQUEST).json({
-                status: StatusEnum['ERROR'],
                 message: 'User with provided email already exists!'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
             message: ValidationUtil.buildErrorMessage(err, 'create', 'user')
         });
     });
 };
 
-const retrieveAll = (req, res) => {
+const getAll = (req, res) => {
     const user = req.decoded;
 
     User.find({ companyID: user.companyID }, { passwordHash: 0, salt: 0 }).then(users => {
@@ -141,25 +129,22 @@ const retrieveAll = (req, res) => {
             return res.status(HttpStatus.OK).json(users);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'Users not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
-            message: ValidationUtil.buildErrorMessage(err, 'retrieveAll', 'user')
+            message: ValidationUtil.buildErrorMessage(err, 'getAll', 'user')
         });
     });
 };
 
-const retrieveById = (req, res) => {
+const getById = (req, res) => {
     const userId = req.params.id;
     const loggedUser = req.decoded;
 
-    if (userId.length != AppConfig.OBJECT_ID_LEN) {
+    if (userId.length != AppConfig.OBJECT_ID_LEN || !req.params || !req.params.id) {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
             message: 'Invalid ID'
         });
     }
@@ -170,82 +155,99 @@ const retrieveById = (req, res) => {
             return res.status(HttpStatus.OK).json(user);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'User not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
             message: ValidationUtil.buildErrorMessage(err, 'retrieveById', 'user')
         });
     });
 };
 
-const update = (req, res) => {
+const changePersonalData = (req, res) => {
     const loggedUser = req.decoded;
 
     if (!ValidationUtil.isValidObjectId(loggedUser._id)) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
-            message: 'Invalid ID'
-        });
+        return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid ID' });
     }
     user = {};
-    // TODO: 
-    // Make 4 functions from this one:
-    //  1. updateFields() (everything except password & active flag)
-    //  2. updatePassword()
-    //  3. blockUser (basically remove)
-    //  3. activateUser
     // Update fields
     if (req.body.name)
         user.name = req.body.name;
     if (req.body.surname)
         user.surname = req.body.surname;
-    if (req.body.email)
-        user.email = req.body.email;
     if (req.body.dateOfBirth)
         user.dateOfBirth = req.body.dateOfBirth;
-    if (req.body.active)
-        user.active = req.body.active;
+
+    User.findOneAndUpdate({ _id: loggedUser._id }, user, { useFindAndModify: false, new: true, runValidators: true }).then(newUser => {
+        if (newUser) {
+            // Generate new JWT
+            const token = jwt.sign(JSON.stringify(newUser), AppConfig.SECRET);
+            newUser.passwordHash = null;
+            newUser.salt = null;
+
+            return res.status(HttpStatus.OK).json({ token: token, user: newUser });
+        } else {
+            return res.status(HttpStatus.NOT_FOUND).json({
+                message: 'User not found.'
+            });
+        }
+    }).catch(err => {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            message: ValidationUtil.buildErrorMessage(err, 'changePersonalData', 'user')
+        });
+    });
+};
+
+const changePassword = (req, res) => {
+    const loggedUser = req.decoded;
+
+    if (!ValidationUtil.isValidObjectId(loggedUser._id)) {
+        return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid ID' });
+    }
+
+    let user = {};
     if (req.body.passwordHash) {
         let retVal = getPasswordHash(req.body.passwordHash);
         user.salt = retVal.salt;
         user.passwordHash = retVal.passwordHash;
     }
 
-    User.findOneAndUpdate({ _id: userId }, user, { useFindAndModify: false, new: true, runValidators: true }).then(newUser => {
+    User.findOneAndUpdate({ _id: loggedUser._id }, user, { useFindAndModify: false, new: true, runValidators: true }).then(newUser => {
         if (newUser) {
+            // Generate new JWT
+            const token = jwt.sign(JSON.stringify(newUser), AppConfig.SECRET);
             newUser.passwordHash = null;
             newUser.salt = null;
-            return res.status(HttpStatus.OK).json(newUser);
+
+            return res.status(HttpStatus.OK).json({ token: token, user: newUser });
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'User not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
-            message: ValidationUtil.buildErrorMessage(err, 'update', 'user')
+            message: ValidationUtil.buildErrorMessage(err, 'changePassword', 'user')
         });
     });
 };
 
-const remove = (req, res) => {
-    const userId = req.params.id;
-    const loggedUser = req.decoded;
-
-    if (userId.length != AppConfig.OBJECT_ID_LEN) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
-            message: 'Invalid ID'
-        });
+const changeActiveStatus = (req, res) => {
+    if (!req.params || !req.params.id || req.params.id.length != AppConfig.OBJECT_ID_LEN) {
+        return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid ID' });
     }
 
-    User.findOneAndUpdate({ _id: userId, companyID: loggedUser.companyID }, { active: 0 }, { useFindAndModify: false, new: true, runValidators: true }).then(user => {
+    if (!req.body || !req.body.status) {
+        return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid status' });
+    }
+
+    const userId = req.params.id;
+    const status = req.body.status;
+    const loggedUser = req.decoded;
+
+    User.findOneAndUpdate({ _id: userId, companyID: loggedUser.companyID }, { active: status }, { useFindAndModify: false, new: true, runValidators: true }).then(user => {
         if (user) {
             user.passwordHash = null;
             user.salt = null;
@@ -253,17 +255,17 @@ const remove = (req, res) => {
         }
         else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'User not found.'
             });
         }
     }).catch(err => {
+        console.log(err);
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
-            message: ValidationUtil.buildErrorMessage(err, 'update', 'user')
+            message: ValidationUtil.buildErrorMessage(err, 'changeActiveStatus', 'user')
         });
     });
 };
+
 
 // ---------------------------------- HELPER FUNCTIONS ----------------------------------
 
@@ -284,8 +286,9 @@ module.exports = {
     login,
     token,
     create,
-    retrieveAll,
-    retrieveById,
-    update,
-    remove
+    getAll,
+    getById,
+    changeActiveStatus,
+    changePassword,
+    changePersonalData
 };
