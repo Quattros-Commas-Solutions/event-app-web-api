@@ -2,7 +2,6 @@ const HttpStatus = require('http-status-codes');
 
 const Company = require('../model/companyModel');
 const ValidationUtil = require('../util/validationUtil');
-const StatusEnum = require('../model/enums').StatusEnum;
 
 // companies are currently created internally and manually inserted into the database
 // since it is not defined who will be creating them, JWT validation is excluded at this point
@@ -35,7 +34,7 @@ const getAll = (req, res) => {
 
 };
 
-// information about company can only be retrieved if it is an employee of the company
+// information about company can only be retrieved if it is an employee of the company or by our internal app
 const getById = (req, res) => {
 
     const companyId = req.params.id;
@@ -47,7 +46,8 @@ const getById = (req, res) => {
         });
     }
 
-    if (user.companyID.toString() === companyId) {
+    if (user.companyID.toString() === companyId) { // if we are to add another user-type for us, 
+        // just add another check here || userType === 'Super-Super-Admin' or something similar
         Company.findById(companyId).then(company => {
             if (!company) {
                 return res.status(HttpStatus.NOT_FOUND).json({

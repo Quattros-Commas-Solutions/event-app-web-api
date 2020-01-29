@@ -40,12 +40,12 @@ router.get('/user-type', auth.authUser, (req, res) => userTypeController.getAll(
 router.get('/user-type/:id', auth.authUser, (req, res) => userTypeController.getById(req, res));
 
 // Company routes
-router.post('/company', auth.authAdmin, (req, res) => companyController.create(req, res));
-router.get('/company', auth.authAdmin, (req, res) => companyController.getAll(req, res));
-router.get('/company/:id', auth.authAdmin, (req, res) => companyController.getById(req, res));
+router.post('/company', (req, res) => companyController.create(req, res));
+router.get('/company', (req, res) => companyController.getAll(req, res));
+router.get('/company/:id', auth.authUser, (req, res) => companyController.getById(req, res));
 router.patch('/company', auth.authAdmin, (req, res) => companyController.update(req, res));
-router.delete('/company/:id', auth.authAdmin, (req, res) => companyController.deleteCompany(req, res));
-router.get('/company/get-by-name/:name', auth.authAdmin, (req, res) => companyController.getByNameContains(req, res));
+router.delete('/company/:id', (req, res) => companyController.deleteCompany(req, res));
+router.get('/company/get-by-name/:name', (req, res) => companyController.getByNameContains(req, res));
 
 // EventQuestion routes 
 router.post('/event-question', auth.authUser, (req, res) => eventQuestionController.create(req, res));
