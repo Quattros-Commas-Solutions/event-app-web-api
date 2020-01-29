@@ -104,10 +104,10 @@ const create = (req, res) => {
             user.salt = retVal.salt;
             user.passwordHash = retVal.passwordHash;
             // Add new user
-            user.save().then(() => {
-                user.passwordHash = null;
-                user.salt = null;
-                return res.status(HttpStatus.CREATED).json(user);
+            user.save().then((newUser) => {
+                newUser.passwordHash = null;
+                newUser.salt = null;
+                return res.status(HttpStatus.CREATED).json(newUser);
             });
         } else {
             return res.status(HttpStatus.BAD_REQUEST).json({
