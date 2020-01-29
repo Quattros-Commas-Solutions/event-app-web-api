@@ -15,7 +15,7 @@ const create = (req, res) => {
 
     if (!user || !req.body) {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            message: 'Bad request'
+            message: 'Bad request.'
         });
     }
 
@@ -28,14 +28,14 @@ const create = (req, res) => {
     // we must make sure that it is an event of the company the user is part and that the user has accepted the invitation
     Event.findOne({ _id: new ObjectId(eventQuestion.eventID), companyID: new ObjectId(eventQuestion.companyID) }).then(event => {
         if (!event) {
-            return res.status(HttpStatus.NOT_FOUND).json({
-                message: 'Event not found'
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: 'Bad request. Invalid event ID.'
             });
         }
         Invite.findOne({ eventID: event._id, userID: user._id, responseType: ResponseTypeEnum['Accepted'] }).then(invite => {
             if (invite) {
-                eventQuestion.save().then(() => {
-                    return res.status(HttpStatus.CREATED).json(eventQuestion);
+                eventQuestion.save().then(newEventQuestion => {
+                    return res.status(HttpStatus.CREATED).json(newEventQuestion);
                 }).catch(err => {
                     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                         message: ValidationUtil.buildErrorMessage(err, 'create', 'eventQuestion')
@@ -48,7 +48,7 @@ const create = (req, res) => {
             }
         }).catch(err => {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                message: 'Internal server error'
+                message: 'Internal server error.'
             });
         });
     }).catch(err => {
@@ -64,7 +64,7 @@ const getAllHelper = (req, res, companyID) => {
         return res.status(HttpStatus.OK).json(eventQuestions);
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            message: 'Internal server error'
+            message: 'Internal server error.'
         });
     });
 }
@@ -89,12 +89,12 @@ const getAll = (req, res) => {
                 return getAllHelper(req, res, user.companyID);
             } else {
                 return res.status(HttpStatus.UNAUTHORIZED).json({
-                    message: 'User is not part of event'
+                    message: 'User is not part of event.'
                 });
             }
         }).catch(err => {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                message: 'Internal server error'
+                message: 'Internal server error.'
             });
         });
     }
@@ -105,13 +105,13 @@ const getByIdHelper = (req, res, eventQuestionID, companyID) => {
     EventQuestion.findOne({ _id: eventQuestionID, companyID }, { __v: 0 }).then(eventQuestion => {
         if (!eventQuestion) {
             return res.status(HttpStatus.NOT_FOUND).json({
-                message: 'Event question not found'
+                message: 'Event question not found.'
             });
         }
         return res.status(HttpStatus.OK).json(eventQuestion);
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            message: 'Internal server error'
+            message: 'Internal server error.'
         });
     });
 };
@@ -135,12 +135,12 @@ const getById = (req, res) => {
                 return getByIdHelper(req, res, new ObjectId(eventQuestionID), user.companyID);
             } else {
                 return res.status(HttpStatus.UNAUTHORIZED).json({
-                    message: 'User is not part of event'
+                    message: 'User is not part of event.'
                 });
             }
         }).catch(err => {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                message: 'Internal server error'
+                message: 'Internal server error.'
             });
         })
     }

@@ -1,11 +1,8 @@
 const HttpStatus = require('http-status-codes');
-const Mongoose = require('mongoose');
 
 const Company = require('../model/companyModel');
 const ValidationUtil = require('../util/validationUtil');
-const UserTypeEnum = require('../model/enums').UserTypeEnum;
 const StatusEnum = require('../model/enums').StatusEnum;
-const AppConfig = require('../config').AppConfig;
 
 // companies are currently created internally and manually inserted into the database
 // since it is not defined who will be creating them, JWT validation is excluded at this point
@@ -13,12 +10,11 @@ const create = (req, res) => {
 
     const company = new Company(req.body);
 
-    company.save().then(() => {
-        res.status(HttpStatus.CREATED).json(company);
+    company.save().then(newCompany => {
+        res.status(HttpStatus.CREATED).json(newCompany);
     }).catch(err => {
         const errorMessage = ValidationUtil.buildErrorMessage(err, 'create', 'company');
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
             message: errorMessage
         });
     });
@@ -33,7 +29,6 @@ const getAll = (req, res) => {
         return res.status(HttpStatus.OK).json(companies);
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
             message: 'Internal server error'
         });
     })
@@ -48,29 +43,25 @@ const getById = (req, res) => {
 
     if (!ValidationUtil.isValidObjectId(companyId) || !user) {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
             message: 'Bad request'
         });
     }
 
     if (user.companyID.toString() === companyId) {
-        Company.findById(companyId, { _id: 0 }).then(company => {
+        Company.findById(companyId).then(company => {
             if (!company) {
                 return res.status(HttpStatus.NOT_FOUND).json({
-                    status: StatusEnum['ERROR'],
                     message: 'Company not found'
                 });
             }
             return res.status(HttpStatus.OK).json(company);
         }).catch(err => {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                status: StatusEnum['ERROR'],
                 message: 'Internal server error'
             });
         });
     } else {
         return res.status(HttpStatus.NOT_FOUND).json({
-            status: StatusEnum['ERROR'],
             message: 'Company not found'
         });
     }
@@ -84,7 +75,6 @@ const update = (req, res) => {
 
     if (!company || !user || !ValidationUtil.isValidObjectId(company.id)) {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
             message: 'Bad request'
         });
     }
@@ -93,20 +83,17 @@ const update = (req, res) => {
         Company.findByIdAndUpdate(company.id, company, { useFindAndModify: false, new: true, runValidators: true }).then(model => {
             if (!model) {
                 return res.status(HttpStatus.NOT_FOUND).json({
-                    status: StatusEnum['ERROR'],
                     message: `Company with ID '${company.id}' not found`
                 });
             }
             return res.status(HttpStatus.OK).json(model);
         }).catch(err => {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                status: StatusEnum['ERROR'],
                 message: ValidationUtil.buildErrorMessage(err, 'update', 'company')
             });
         });
     } else {
         return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
             message: 'Unauthorized access'
         });
     }
@@ -121,22 +108,19 @@ const deleteCompany = (req, res) => {
 
     if (!ValidationUtil.isValidObjectId(companyId)) {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
             message: 'Bad request'
         });
     }
 
-    Company.findByIdAndDelete(companyId, { _id: 0 }).then(company => {
+    Company.findByIdAndDelete(companyId).then(company => {
         if (!company) {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'Company not found'
             });
         }
-        return res.status(HttpStatus.OK).json(company);
+        return res.status(HttpStatus.OK).json(true);
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
             message: 'Internal server error'
         });
     });
@@ -151,7 +135,6 @@ const getByNameContains = (req, res) => {
 
     if (!companyName) {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
             message: 'Bad request'
         });
     }
@@ -161,7 +144,6 @@ const getByNameContains = (req, res) => {
         return res.status(HttpStatus.OK).json(companies);
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
             message: 'Internal server error'
         });
     })
