@@ -17,6 +17,10 @@ const tokenList = {}
 // ================================== CRUD FUNCTIONS ==================================
 
 const login = (req, res) => {
+    if (!req.body || !req.body.email) {
+        return res.status(HttpStatus.BAD_REQUEST).json({ message: 'No email provided' });
+    }
+
     User.findOne({
         email: req.body.email,
         active: true
@@ -33,12 +37,7 @@ const login = (req, res) => {
                 user.passwordHash = null;
                 user.salt = null;
 
-                // Generate response
-                const response = {
-                    user: user,
-                    token: token
-                };
-                return res.status(HttpStatus.OK).json(response);
+                return res.status(HttpStatus.OK).json({ user, token });
             } else {
                 return res.status(HttpStatus.FORBIDDEN).json({
                     message: 'Incorrect email or password'
@@ -51,7 +50,7 @@ const login = (req, res) => {
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            message: ValidationUtil.buildErrorMessage(err, 'login', 'user')
+            message: 'Internal server error'
         });
     });
 };
@@ -60,18 +59,18 @@ const login = (req, res) => {
 // For mobile apps users ususally login only once so JWT shouldn't have any expiration date
 // However we should be able to revoke a JWT (e.g. users phone has been stolen)
 const token = (req, res) => {
-    const data = req.body;
+    const loggedUser = req.decoded;
+
     // If refresh token exists
-    if ((data.refreshToken) && (data.refreshToken in tokenList)) {
-        const user = { email: data.email, active: true }
-        User.findOne(user).then(user => {
+    if ((loggedUser.refreshToken) && (loggedUser.refreshToken in tokenList)) {
+        User.findOne({ email: loggedUser.email, active: true }).then(user => {
             if (user) {
                 // Create new token
                 const token = jwt.sign(JSON.stringify(user), AppConfig.SECRET, { expiresIn: AppConfig.TOKEN_LIFESPAN });
-                const response = { token: token };
+
                 // Update token in the list
                 tokenList[data.refreshToken].token = token;
-                return res.status(HttpStatus.OK).json(response);
+                return res.status(HttpStatus.OK).json({ token });
             } else {
                 return res.status(HttpStatus.NOT_FOUND).json({
                     message: 'User not found.'
@@ -79,7 +78,7 @@ const token = (req, res) => {
             }
         }).catch(err => {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                message: ValidationUtil.buildErrorMessage(err, 'token', 'user')
+                message: 'Internal server error'
             });
         });
     }
@@ -134,20 +133,20 @@ const getAll = (req, res) => {
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            message: ValidationUtil.buildErrorMessage(err, 'getAll', 'user')
+            message: 'Internal server error'
         });
     });
 };
 
 const getById = (req, res) => {
-    const userId = req.params.id;
-    const loggedUser = req.decoded;
-
-    if (userId.length != AppConfig.OBJECT_ID_LEN || !req.params || !req.params.id) {
+    if (!req.params.id || ValidationUtil.isValidObjectId(req.params.id)) {
         return res.status(HttpStatus.BAD_REQUEST).json({
             message: 'Invalid ID'
         });
     }
+
+    const userId = req.params.id;
+    const loggedUser = req.decoded;
 
     User.findById(userId, { passwordHash: 0, salt: 0 }).then(user => {
         // Client can only retrieve users within his company
@@ -171,7 +170,8 @@ const changePersonalData = (req, res) => {
     if (!ValidationUtil.isValidObjectId(loggedUser._id)) {
         return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid ID' });
     }
-    user = {};
+
+    let user = {};
     // Update fields
     if (req.body.name)
         user.name = req.body.name;
@@ -187,7 +187,7 @@ const changePersonalData = (req, res) => {
             newUser.passwordHash = null;
             newUser.salt = null;
 
-            return res.status(HttpStatus.OK).json({ token: token, user: newUser });
+            return res.status(HttpStatus.OK).json({ token, user: newUser });
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
                 message: 'User not found.'
@@ -195,7 +195,7 @@ const changePersonalData = (req, res) => {
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            message: ValidationUtil.buildErrorMessage(err, 'changePersonalData', 'user')
+            message: 'Internal server error'
         });
     });
 };
@@ -221,7 +221,7 @@ const changePassword = (req, res) => {
             newUser.passwordHash = null;
             newUser.salt = null;
 
-            return res.status(HttpStatus.OK).json({ token: token, user: newUser });
+            return res.status(HttpStatus.OK).json({ token, user: newUser });
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
                 message: 'User not found.'
@@ -229,22 +229,22 @@ const changePassword = (req, res) => {
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            message: ValidationUtil.buildErrorMessage(err, 'changePassword', 'user')
+            message: 'Internal server error'
         });
     });
 };
 
 const changeActiveStatus = (req, res) => {
-    if (!req.params || !req.params.id || req.params.id.length != AppConfig.OBJECT_ID_LEN) {
+    if (!req.params.id || !ValidationUtil.isValidObjectId(req.params.id)) {
         return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid ID' });
     }
 
-    if (!req.body || !req.body.status) {
+    if (!req.params.body || !req.params.status) {
         return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid status' });
     }
 
     const userId = req.params.id;
-    const status = req.body.status;
+    const status = req.params.status;
     const loggedUser = req.decoded;
 
     User.findOneAndUpdate({ _id: userId, companyID: loggedUser.companyID }, { active: status }, { useFindAndModify: false, new: true, runValidators: true }).then(user => {
@@ -259,9 +259,8 @@ const changeActiveStatus = (req, res) => {
             });
         }
     }).catch(err => {
-        console.log(err);
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            message: ValidationUtil.buildErrorMessage(err, 'changeActiveStatus', 'user')
+            message: 'Internal server error'
         });
     });
 };
