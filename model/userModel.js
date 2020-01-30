@@ -41,18 +41,21 @@ const userSchema = Mongoose.Schema({
         type: String,
         default: '',
         trim: true
-    }, 
-    notifications: [new Schema({
-        notificationsID: {
-            type: Mongoose.Types.ObjectId, 
-            ref: 'notifications', 
-            required: true
-        }, 
-        read: {
-            type: Boolean, 
-            default: false,
-        }
-    })]
+    },
+    notifications: {
+        type: [new Mongoose.Schema({
+            notificationID: {
+                type: Mongoose.Types.ObjectId,
+                ref: 'notifications',
+                required: [true, 'You must provide a notification ID']
+            },
+            read: {
+                type: Boolean,
+                default: false,
+            }
+        })],
+        default: []
+    }
 });
 
 const User = module.exports = Mongoose.model('user', userSchema, 'users');
