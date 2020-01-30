@@ -3,12 +3,12 @@ const Mongoose = require('mongoose');
 const userTypeSchema = Mongoose.Schema({
     value: {
         type: Number,
-        required: true
+        required: [true, 'User type value must be specified']
     },
     name: {
         type: String,
-        required: true,
-        enum: ['Super-Admin', 'Admin', 'Employee']
+        required: [true, 'User type name must be specified'],
+        enum: [['Super-Admin', 'Admin', 'Employee'], 'User type value is not valid']
     }
 });
 

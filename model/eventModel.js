@@ -1,9 +1,11 @@
 const Mongoose = require('mongoose');
+const Validator = require('validator');
 
 const LocationSchema = require('../util/schemas/locationSchema');
 
 //validator function for checking if dates are in the future when creating an event
-const dateInFuture = (value) => {
+const dateInFutureAndValid = (value) => {
+    if(!Validator.isISO8601(value + '')) return false;
     return value > Date.now();
 }
 
@@ -14,32 +16,32 @@ const eventSchema = Mongoose.Schema({
     },
     name: {
         type: String,
-        required: true,
-        minlength: [1, 'Event name has to be at least 1 character long.']
+        required: [true, 'Event name must me specified'],
+        minlength: [1, 'Event name must be at least 1 character long']
     },
     location: {
         type: LocationSchema,
-        required: true
+        required: [true, 'Event location must me specified'],
     },
     startTime: {
         type: Date,
         required: true,
         validate: {
-            validator: dateInFuture,
-            message: 'Start time has to be in the future.'
+            validator: dateInFutureAndValid,
+            message: 'Event start time has to be in the future and a valid date'
         }
     },
     endTime: {
         type: Date,
         required: true,
         validate: {
-            validator: dateInFuture,
-            message: 'End date has to be in the future.'
+            validator: dateInFutureAndValid,
+            message: 'Event end time has to be in the future and a valid date'
         }
     },
     description: {
         type: String,
-        maxlength: [1000, 'Description maximum length is 1000 characters.']
+        maxlength: [1000, 'Event description maximum length is 1000 characters']
     },
     posterURL: String,
     documentURL: Array,
@@ -49,7 +51,6 @@ const eventSchema = Mongoose.Schema({
     },
     active: {
         type: Boolean,
-        required: true,
         default: true
     }
 });
@@ -58,7 +59,7 @@ const eventSchema = Mongoose.Schema({
 //pre function attaches a callback to a specified middleware function, in this case 'validate'
 eventSchema.pre('validate', function(next){
     if (this.startTime >= this.endTime) {
-        this.invalidate('startTime', 'Start time must be before end time.', this.startTime);
+        this.invalidate('startTime', 'Event start time must be before end time.', this.startTime);
     }   
 
     next();

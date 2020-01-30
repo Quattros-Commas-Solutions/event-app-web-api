@@ -3,11 +3,11 @@ const Mongoose = require('mongoose');
 const responseTypeSchema = Mongoose.Schema({
     value: {
         type: Number,
-        required: true
+        required: [true, 'Response type value must be specified']
     },
     name: {
         type: String,
-        required: true
+        required: [true, 'Response type name must be specified']
     }
 });
 
