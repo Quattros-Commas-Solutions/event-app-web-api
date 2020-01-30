@@ -51,7 +51,7 @@ router.get('/company/get-by-name/:name', (req, res) => companyController.getByNa
 router.post('/event-question', auth.authUser, (req, res) => eventQuestionController.create(req, res));
 // this is kinda dumb, but the way it was set up before you were getting every event question for every event 
 // in the company, it is only natural that you would get only the ones for a specific event
-router.get('/event-question/all/:id', auth.authUser, (req, res) => eventQuestionController.getAll(req, res));
+router.get('/event-question/all/:event_id', auth.authUser, (req, res) => eventQuestionController.getAll(req, res));
 router.get('/event-question/:id', auth.authAdmin, (req, res) => eventQuestionController.getById(req, res));
 router.delete('/event-question/:id', auth.authAdmin, (req, res) => eventQuestionController.deleteById(req, res));
 router.patch('/event-question', auth.authUser, (req, res) => eventQuestionController.update(req, res));

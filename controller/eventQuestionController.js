@@ -72,7 +72,7 @@ const getAllHelper = (req, res, companyID) => {
 const getAll = (req, res) => {
 
     const user = req.decoded;
-    const eventID = req.params.id;
+    const eventID = req.params.event_id;
 
     if (!user || !ValidationUtil.isValidObjectId(eventID)) {
         return res.status(HttpStatus.BAD_REQUEST).json({
