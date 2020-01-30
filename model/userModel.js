@@ -41,7 +41,18 @@ const userSchema = Mongoose.Schema({
         type: String,
         default: '',
         trim: true
-    }
+    }, 
+    notifications: [new Schema({
+        notificationsID: {
+            type: Mongoose.Types.ObjectId, 
+            ref: 'notifications', 
+            required: true
+        }, 
+        read: {
+            type: Boolean, 
+            default: false,
+        }
+    })]
 });
 
 const User = module.exports = Mongoose.model('user', userSchema, 'users');
