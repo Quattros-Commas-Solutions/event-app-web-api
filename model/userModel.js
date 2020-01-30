@@ -1,6 +1,10 @@
 const Mongoose = require('mongoose');
 const Validator = require('validator');
 
+const isDateValid = (value) => {
+    return value < Date.now();
+}
+
 const userSchema = Mongoose.Schema({
     companyID: {
         type: Mongoose.Types.ObjectId,
@@ -19,17 +23,14 @@ const userSchema = Mongoose.Schema({
     email: {
         type: String,
         required: [true, 'User email must be specified'],
-        validate: {
-            validator: Validator.isEmail,
-            message: 'User email is not valid'
-        }
+        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'User email is not valid']
     },
     gender: String,
     dateOfBirth: {
         type: Date,
         validate: {
-            validator: Validator.isISO8601,
-            message: 'User date of birth format is not valid'
+            validator: isDateValid,
+            message: 'User date of birth is not valid'
         }
     },
     passwordHash: {

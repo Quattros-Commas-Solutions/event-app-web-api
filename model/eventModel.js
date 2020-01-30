@@ -5,7 +5,6 @@ const LocationSchema = require('../util/schemas/locationSchema');
 
 //validator function for checking if dates are in the future when creating an event
 const dateInFutureAndValid = (value) => {
-    if(!Validator.isISO8601(value + '')) return false;
     return value > Date.now();
 }
 
