@@ -1,13 +1,14 @@
 const Mongoose = require('mongoose');
 
-const LocationSchema = require('../util/schemas/locationSchema');
+const LocationSchema = require('./schema/locationSchema');
 
 const companySchema = Mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Company name must be specified'],
         trim: true,
-        minlength: [1, 'Company name must be at least 1 character long']
+        minlength: [1, 'Company name must be at least 1 character long'],
+        maxlength: [255, 'Company name cannot be longer than 255 characters']
     },
     location: {
         type: LocationSchema,
@@ -15,7 +16,8 @@ const companySchema = Mongoose.Schema({
     },
     logoURL: {
         type: String,
-        trim: true
+        trim: true,
+        default: ''
     }
 });
 

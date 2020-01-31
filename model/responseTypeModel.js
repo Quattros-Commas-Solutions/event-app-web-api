@@ -7,7 +7,9 @@ const responseTypeSchema = Mongoose.Schema({
     },
     name: {
         type: String,
-        required: [true, 'Response type name must be specified']
+        required: [true, 'Response type name must be specified'],
+        minlength: [1, 'Response type name must be at least 1 character long'],
+        maxlength: [255, 'Response type name cannot be longer than 255 characters']
     }
 });
 

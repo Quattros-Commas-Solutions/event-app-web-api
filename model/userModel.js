@@ -13,19 +13,31 @@ const userSchema = Mongoose.Schema({
     name: {
         type: String,
         required: [true, 'User name must be specified'],
-        trim: true
+        trim: true,
+        minlength: [1, 'User name must be at least 1 character long'],
+        maxlength: [255, 'User name cannot be longer than 255 characters']
     },
     surname: {
         type: String,
         required: [true, 'User surname must be specified'],
-        trim: true
+        trim: true,
+        minlength: [1, 'User surname must be at least 1 character long'],
+        maxlength: [255, 'User surname cannot be longer than 255 characters']
     },
     email: {
         type: String,
         required: [true, 'User email must be specified'],
-        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'User email is not valid']
+        validate: {
+            validator: Validator.isEmail,
+            message: 'User email is not valid'
+        },
+        minlength: [1, 'User email must be at least 1 character long'],
+        maxlength: [255, 'User email cannot be longer than 255 characters']
     },
-    gender: String,
+    gender: {
+        type: String,
+        default: 'Not specified'
+    },
     dateOfBirth: {
         type: Date,
         validate: {
@@ -35,7 +47,8 @@ const userSchema = Mongoose.Schema({
     },
     passwordHash: {
         type: String,
-        required: true
+        required: true,
+        minlength: ''
     },
     salt: {
         type: String,
@@ -49,7 +62,7 @@ const userSchema = Mongoose.Schema({
     active: {
         type: Boolean,
         required: true,
-        default: true
+        default: false
     },
     profilePic: {
         type: String,

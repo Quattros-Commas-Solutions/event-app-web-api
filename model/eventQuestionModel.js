@@ -1,5 +1,7 @@
 const Mongoose = require('mongoose');
 
+const SimpleUserSchema = require('./schema/simpleUserSchema');
+
 const eventQuestionSchema = Mongoose.Schema({
     eventID: {
         type: Mongoose.Types.ObjectId,
@@ -29,29 +31,9 @@ const eventQuestionSchema = Mongoose.Schema({
                 minlength: [1, 'Response can not be left empty'],
                 maxlength: [400, 'Response lenght cannot be more than 400 characters']
             },
-            user: { // a simplified version of the user is stored - maybe just store the ID, but then there will be an influx of queries whilst showing the Q&A section => DISCUSS
-                type: new Mongoose.Schema({
-                    id: {
-                        type: String,
-                        required: true,
-                        trim: true
-                    },
-                    name: {
-                        type: String,
-                        required: [true, 'Response posters name must be specified'],
-                        trim: true
-                    },
-                    surname: {
-                        type: String,
-                        required: [true, 'Response posters surname must be specified'],
-                        trim: true
-                    },
-                    profilePic: {
-                        type: String,
-                        default: null,
-                        trim: true
-                    }
-                })
+            user: {
+                type: SimpleUserSchema,
+                required: [true, 'Question response has to have user data']
             }
         }, {
             timestamps: true // contains createdAt and updatedAt fields, which are what we need

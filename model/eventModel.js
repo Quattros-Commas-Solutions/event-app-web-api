@@ -1,7 +1,7 @@
 const Mongoose = require('mongoose');
 const Validator = require('validator');
 
-const LocationSchema = require('../util/schemas/locationSchema');
+const LocationSchema = require('./schema/locationSchema');
 
 //validator function for checking if dates are in the future when creating an event
 const dateInFutureAndValid = (value) => {
@@ -16,7 +16,8 @@ const eventSchema = Mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Event name must me specified'],
-        minlength: [1, 'Event name must be at least 1 character long']
+        minlength: [1, 'Event name must be at least 1 character long'],
+        maxlength: [255, 'EVent name cannot be longer than 255 characters']
     },
     location: {
         type: LocationSchema,
@@ -40,10 +41,17 @@ const eventSchema = Mongoose.Schema({
     },
     description: {
         type: String,
+        default: '',
         maxlength: [1000, 'Event description maximum length is 1000 characters']
     },
-    posterURL: String,
-    documentURL: Array,
+    posterURL: {
+        type: String,
+        default: ''
+    },
+    documentURL: [{
+        type: String,
+        default: ''
+    }],
     attendanceRequired: {
         type: Boolean,
         default: false
