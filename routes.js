@@ -30,9 +30,9 @@ router.post('/user/login', (req, res) => userController.login(req, res));
 router.get('/user/token', auth.authUser, (req, res) => userController.token(req, res));
 
 //Event routes
-router.get('/event', auth.authUser, (req,res) => eventController.getAll(req, res));
-router.post('/event', auth.authAdmin, (req,res) => eventController.create(req, res));
-router.get('/event/:id', auth.authUser, (req,res) => eventController.getById(req, res));
+router.get('/event', auth.authUser, (req, res) => eventController.getAll(req, res));
+router.post('/event', auth.authAdmin, (req, res) => eventController.create(req, res));
+router.get('/event/:id', auth.authUser, (req, res) => eventController.getById(req, res));
 router.post('/event/:id', auth.authAdmin, (req, res) => eventController.update(req, res));
 router.delete('/event/:id', auth.authAdmin, (req, res) => eventController.remove(req, res));
 
@@ -59,7 +59,7 @@ router.delete('/event-question/response/:eventQuestionId/:responseId', auth.auth
 
 // ResponseType routes
 router.get('/response-type', auth.authUser, (req, res) => responseTypeController.getAll(req, res));
-router.get('/response-type/:value', auth.authUser,  (req, res) => responseTypeController.getByValue(req,res));
+router.get('/response-type/:value', auth.authUser, (req, res) => responseTypeController.getByValue(req, res));
 
 // EventGroup routes
 router.get('/event-group', auth.authUser, (req, res) => eventGropController.retrieveAll(req, res))

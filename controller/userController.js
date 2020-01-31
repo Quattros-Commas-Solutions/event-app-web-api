@@ -118,6 +118,11 @@ const create = (req, res) => {
                 user.passwordHash = null;
                 user.salt = null;
                 return res.status(HttpStatus.CREATED).json(user);
+            }).catch(err => {
+                const errorMessage = ValidationUtil.buildErrorMessage(err, 'create', 'user');
+                return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                    message: errorMessage
+                });
             });
         } else {
             return res.status(HttpStatus.BAD_REQUEST).json({
