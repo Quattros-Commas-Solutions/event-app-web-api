@@ -28,6 +28,8 @@ router.patch('/user/update', auth.authUser, (req, res) => userController.update(
 router.delete('/user/:id', auth.authAdmin, (req, res) => userController.remove(req, res));
 router.post('/user/login', (req, res) => userController.login(req, res));
 router.get('/user/token', auth.authUser, (req, res) => userController.token(req, res));
+router.patch('/user/notification/:id', auth.authUser, (req, res) => userController.markNotificationAsRead(req, res));
+router.delete('/user/notification/:id', auth.authUser, (req, res) => userController.deleteNotification(req, res));
 
 //Event routes
 router.get('/event', auth.authUser, (req, res) => eventController.getAll(req, res));
