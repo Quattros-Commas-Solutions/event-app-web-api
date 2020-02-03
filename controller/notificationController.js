@@ -104,7 +104,7 @@ const deleteById = (req, res) => {
     }
 
     // first check that notification exists
-    Notification.findByIdAndDelete(notificationID).then(notification => {
+    Notification.findOneAndDelete({ _id: new ObjectId(notificationID), companyID: user.companyID}).then(notification => {
         if (notification) {
             // find users you need to update
             Invite.find({
