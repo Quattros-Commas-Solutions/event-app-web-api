@@ -9,7 +9,9 @@ const AppConfig = {
     REFRESH_TOKEN_SECRET: 'SUPER_SECRET_KOSOVO_I_METOHIJA',
     TOKEN_LIFESPAN: 7200, // 2 hours
     REFRESH_TOKEN_LIFESPAN: 28800, // 8 hours
-    OBJECT_ID_LEN: 24
+    OBJECT_ID_LEN: 24, 
+    EMAIL: 'gcsdevs@gmail.com', 
+    EMAIL_PASSWORD: 'qcsolutions@Gmail'
 };
 
 module.exports.AppConfig = AppConfig;
