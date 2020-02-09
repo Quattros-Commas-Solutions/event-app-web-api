@@ -1,33 +1,6 @@
 const nodemailer = require('nodemailer');
-const chalk = require('chalk');
 
 const AppConfig = require('../config').AppConfig;
-
-let transporter = undefined;
-
-/**
- * Sets up transporter for inital use
- */
-const setup = () => {
-
-    transporter = nodemailer.createTransport({
-        host: 'smtp.google.com', // could be moved to config.js
-        auth: {
-            user: AppConfig.EMAIL,
-            pass: AppConfig.EMAIL_PASSWORD
-        }
-    });
-
-    transporter.verify().then(success => {
-        console.log(success);
-        return transporter;
-    }).catch(err => {
-        console.log('errrr')
-        console.error(err);
-        return undefined;
-    });
-
-};
 
 // CC recipients are ones included in the email, but not intended directly for them 
 // in this case this will be the (super)admins of the company
@@ -35,33 +8,41 @@ const setup = () => {
  * 
  * @param {string} subject 
  * @param {string} content 
- * @param {list<string>} recipients 
- * @param {list<string>} ccRecipients 
+ * @param {string[]} recipients 
+ * @param {string[]} ccRecipients 
  */
 const sendEmail = (subject, content, recipients, ccRecipients) => {
 
-    if (!transporter) {
-        transporter = setup();
-    }
-
-    if (!transporter) {
-        console.log('Unable to send email');
+    if (!recipients || !subject || !content) {
         return false;
     }
 
-    const message = {
-        from: AppConfig.EMAIL,
-        to: recipients,
-        cc: ccRecipients,
-        subject,
-        text: content
-    };
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',  // could be moved to config.js
+        secure: true,
+        port: 587,
+        auth: {
+            user: AppConfig.EMAIL,
+            pass: AppConfig.EMAIL_PASSWORD
+        }
+    });
 
-    transporter.sendMail(message).then(retVal => {
-        console.log(retVal);
-        return true;
+    transporter.verify().then(success => {
+
+        const message = {
+            from: AppConfig.EMAIL,
+            to: recipients,
+            cc: ccRecipients || [],
+            subject,
+            text: content
+        };
+
+        transporter.sendMail(message).then(response => {
+            return true;
+        }).catch(err => {
+            return false;
+        });
     }).catch(err => {
-        console.log(err);
         return false;
     });
 
