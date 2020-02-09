@@ -50,6 +50,7 @@ router.get('/company/get-by-name/:name', auth.authAdmin, (req, res) => companyCo
 // EventQuestion routes 
 router.post('/event-question', auth.authUser, (req, res) => eventQuestionController.create(req, res));
 router.get('/event-question', auth.authUser, (req, res) => eventQuestionController.getAll(req, res));
+router.get('/event-question/unanswered/:event_id', auth.authAdmin, (req, res) => eventQuestionController.getAllUnansweredForEvent(req, res));
 router.get('/event-question/:id', auth.authAdmin, (req, res) => eventQuestionController.getById(req, res));
 router.delete('/event-question/:id', auth.authAdmin, (req, res) => eventQuestionController.deleteById(req, res));
 router.patch('/event-question', auth.authUser, (req, res) => eventQuestionController.update(req, res));
@@ -61,11 +62,11 @@ router.get('/response-type', auth.authUser, (req, res) => responseTypeController
 router.get('/response-type/:value', auth.authUser, (req, res) => responseTypeController.getByValue(req, res));
 
 // EventGroup routes
-router.get('/event-group', auth.authUser, (req, res) => eventGropController.retrieveAll(req, res))
-router.post('/event-group', auth.authAdmin, (req, res) => eventGropController.create(req, res))
-router.get('/event-group/:id', auth.authUser, (req, res) => eventGropController.retrieveById(req, res))
-router.patch('/event-group', auth.authAdmin, (req, res) => eventGropController.update(req, res))
-router.delete('/event-group/:id', auth.authAdmin, (req, res) => eventGropController.remove(req, res))
+router.get('/event-group', auth.authUser, (req, res) => eventGropController.retrieveAll(req, res));
+router.post('/event-group', auth.authAdmin, (req, res) => eventGropController.create(req, res));
+router.get('/event-group/:id', auth.authUser, (req, res) => eventGropController.retrieveById(req, res));
+router.patch('/event-group', auth.authAdmin, (req, res) => eventGropController.update(req, res));
+router.delete('/event-group/:id', auth.authAdmin, (req, res) => eventGropController.remove(req, res));
 
 
 //Exporting the router
