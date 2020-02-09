@@ -50,6 +50,7 @@ router.get('/company/get-by-name/:name', auth.authAdmin, (req, res) => companyCo
 // EventQuestion routes 
 router.post('/event-question', auth.authUser, (req, res) => eventQuestionController.create(req, res));
 router.get('/event-question', auth.authUser, (req, res) => eventQuestionController.getAll(req, res));
+router.get('/event-question/unanswered', auth.authAdmin, (req, res) => eventQuestionController.getAllUnanswered(req, res));
 router.get('/event-question/unanswered/:event_id', auth.authAdmin, (req, res) => eventQuestionController.getAllUnansweredForEvent(req, res));
 router.get('/event-question/:id', auth.authAdmin, (req, res) => eventQuestionController.getById(req, res));
 router.delete('/event-question/:id', auth.authAdmin, (req, res) => eventQuestionController.deleteById(req, res));

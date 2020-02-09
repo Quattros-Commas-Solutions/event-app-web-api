@@ -93,7 +93,26 @@ const getAllUnansweredForEvent = (req, res) => {
         return res.status(HttpStatus.OK).json(eventQuestions);
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
+            message: 'Internal server error'
+        });
+    });
+
+};
+
+const getAllUnanswered = (req, res) => {
+
+    const user = req.decoded;
+
+    if (!user) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+            message: 'Unauthorized.'
+        });
+    }
+
+    EventQuestion.find({ companyID: user.companyID, responses: [] }).then(eventQuestions => {
+        return res.status(HttpStatus.OK).json(eventQuestions);
+    }).catch(err => {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             message: 'Internal server error'
         });
     });
@@ -267,6 +286,7 @@ module.exports = {
     getById,
     getAll,
     getAllUnansweredForEvent, 
+    getAllUnanswered, 
     deleteById,
     addResponseToEvent,
     update,
