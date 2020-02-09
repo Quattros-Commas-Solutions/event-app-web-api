@@ -212,6 +212,34 @@ const remove = (req, res) => {
         { active: false }, { new: true })
         .then(event => {
             if (event) {
+                // find event participants
+                Invite.find({ eventID: event._id, responseType: ResponseTypeEnum['Accepted'] }, { userID: 1 }).then(invites => {
+                    const userIDs = invites.map(invite => invite.userID);
+                    // get user mails
+                    User.find({ _id: { $in: userIDs } }, { email: 1 }).then(users => {
+                        const emails = users.map(u => u.email);
+                        // now get admin mails for cc - this is done separately since not all admins are part of all events and 
+                        // the idea at the moment is to include all admins in the mail as cc
+                        User.find({ companyID: user.companyID, accessType: { $in: [UserTypeEnum['Admin'], UserTypeEnum['Super-Admin']] } }, { email: 1 }).then(adminUsers => {
+                            const adminEmails = adminUsers.map(adminUser => adminUser.email);
+                            if (emailUtil.sendEmail(`${event.name} - Cancelled`, `Event '${event.name}' has been cancelled.`, emails, adminEmails)) {
+                                return res.status(HttpStatus.OK).json(event);
+                            } else {
+                                // what to do? update went fine, but fails at sending emails
+                                return res.status(HttpStatus.OK).json(event);
+                            }
+                        }).catch(err => {
+                            // what to do? update went fine, but fails at user get
+                            return res.status(HttpStatus.OK).json(event);
+                        });
+                    }).catch(err => {
+                        // what to do? update went fine, but fails at user get
+                        return res.status(HttpStatus.OK).json(event);
+                    });
+                }).catch(err => {
+                    // what to do? update went fine, but fails at invite get
+                    return res.status(HttpStatus.OK).json(event);
+                });
                 return res.status(HttpStatus.OK).json(event);
             } else {
                 return res.status(HttpStatus.NOT_FOUND).json({
