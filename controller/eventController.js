@@ -1,10 +1,13 @@
-const Event = require('../model/eventModel');
-const Invite = require('../model/inviteModel');
 const HttpStatus = require('http-status-codes');
 const ObjectId = require('mongoose').Types.ObjectId;
 
+const Event = require('../model/eventModel');
+const Invite = require('../model/inviteModel');
+const User = require('../model/userModel');
 const ValidationUtil = require('../util/validationUtil');
 const ResponseTypeEnum = require('../model/enums').ResponseTypeEnum;
+const UserTypeEnum = require('../model/enums').UserTypeEnum;
+const emailUtil = require('../util/emailUtil');
 
 const create = (req, res) => {
     const user = req.decoded;
@@ -13,7 +16,7 @@ const create = (req, res) => {
     if (!user || !ValidationUtil.isUserAdmin(user.accessType)) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
             message: 'Unauhorized.'
-        })
+        });
     }
 
     let event = new Event(req.body);
@@ -49,7 +52,7 @@ const getAll = (req, res) => {
             } else {
                 return res.status(HttpStatus.NOT_FOUND).json({
                     message: 'Events not found.'
-                })
+                });
             }
         }).catch(err => {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
@@ -85,7 +88,7 @@ const getAll = (req, res) => {
                     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                         message: 'Internal server error'
                     });
-                })
+                });
             }
         });
     }
@@ -146,13 +149,40 @@ const update = (req, res) => {
     if (!user || !ValidationUtil.isUserAdmin(user.accessType)) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
             message: 'Unauhorized.'
-        })
+        });
     }
 
     Event.findOneAndUpdate({ _id: new ObjectId(eventId), companyID: new ObjectId(user.companyID) },
         req.body, { runValidators: true, new: true }).then(event => {
             if (event) {
-                return res.status(HttpStatus.OK).json(event);
+                // find event participants
+                Invite.find({ eventID: event._id, responseType: ResponseTypeEnum['Accepted'] }, { userID: 1 }).then(invites => {
+                    const userIDs = invites.map(invite => invite.userID);
+                    // get user mails
+                    User.find({ _id: { $in: userIDs } }, { email: 1 }).then(users => {
+                        const emails = users.map(u => u.email);
+                        // now get admin mails for cc - this is done separately since not all admins are part of all events and 
+                        // the idea at the moment is to include all admins in the mail as cc
+                        User.find({ companyID: user.companyID, accessType: { $in: [UserTypeEnum['Admin'], UserTypeEnum['Super-Admin']] } }, { email: 1 }).then(adminUsers => {
+                            const adminEmails = adminUsers.map(adminUser => adminUser.email);
+                            if (emailUtil.sendEmail(`${event.name} - Update`, 'Event details have been updated. Check out what\' changed.', emails, adminEmails)) {
+                                return res.status(HttpStatus.OK).json(event);
+                            } else {
+                                // what to do? update went fine, but fails at sending emails
+                                return res.status(HttpStatus.OK).json(event);
+                            }
+                        }).catch(err => {
+                            // what to do? update went fine, but fails at user get
+                            return res.status(HttpStatus.OK).json(event);
+                        });
+                    }).catch(err => {
+                        // what to do? update went fine, but fails at user get
+                        return res.status(HttpStatus.OK).json(event);
+                    });
+                }).catch(err => {
+                    // what to do? update went fine, but fails at invite get
+                    return res.status(HttpStatus.OK).json(event);
+                });
             } else {
                 return res.status(HttpStatus.NOT_FOUND).json({
                     message: 'Event not found.'
@@ -175,7 +205,7 @@ const remove = (req, res) => {
     if (!user || !ValidationUtil.isUserAdmin(user.accessType)) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
             message: 'Unauhorized.'
-        })
+        });
     }
 
     Event.findOneAndUpdate({ _id: new ObjectId(eventId), companyID: new ObjectId(user.companyID) },
