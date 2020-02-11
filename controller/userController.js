@@ -140,7 +140,7 @@ const create = (req, res) => {
 
 const retrieveAll = (req, res) => {
     const user = req.decoded;
-
+    
     User.find({ companyID: user.companyID }, { passwordHash: 0, salt: 0 }).then(users => {
         if (users) {
             return res.status(HttpStatus.OK).json(users);
