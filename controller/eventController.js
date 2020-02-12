@@ -7,13 +7,13 @@ const User = require('../model/userModel');
 const ValidationUtil = require('../util/validationUtil');
 const ResponseTypeEnum = require('../model/enums').ResponseTypeEnum;
 const UserTypeEnum = require('../model/enums').UserTypeEnum;
-const emailUtil = require('../util/emailUtil');
+const EmailUtil = require('../util/emailUtil');
 
 const create = (req, res) => {
+
     const user = req.decoded;
 
-    //Only admins can create event objects
-    if (!user || !ValidationUtil.isUserAdmin(user.accessType)) {
+    if (!user) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
             message: 'Unauhorized.'
         });
@@ -30,9 +30,11 @@ const create = (req, res) => {
             message: errorMessage
         });
     });
+
 };
 
 const getAll = (req, res) => {
+
     const user = req.decoded;
     const companyId = user.companyID;
 
@@ -92,9 +94,11 @@ const getAll = (req, res) => {
             }
         });
     }
+
 };
 
 const getById = (req, res) => {
+
     const eventId = req.params.id;
     const user = req.decoded;
 
@@ -139,14 +143,15 @@ const getById = (req, res) => {
             message: 'Internal server error.'
         });
     });
+    
 };
 
 const update = (req, res) => {
+
     const eventId = req.params.id;
     const user = req.decoded;
 
-    //Only admins can update event objects
-    if (!user || !ValidationUtil.isUserAdmin(user.accessType)) {
+    if (!user) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
             message: 'Unauhorized.'
         });
@@ -165,23 +170,31 @@ const update = (req, res) => {
                         // the idea at the moment is to include all admins in the mail as cc
                         User.find({ companyID: user.companyID, accessType: { $in: [UserTypeEnum['Admin'], UserTypeEnum['Super-Admin']] } }, { email: 1 }).then(adminUsers => {
                             const adminEmails = adminUsers.map(adminUser => adminUser.email);
-                            if (emailUtil.sendEmail(`${event.name} - Update`, 'Event details have been updated. Check out what\' changed.', emails, adminEmails)) {
+                            if (EmailUtil.sendEmail(`${event.name} - Update`, 'Event details have been updated. Check out what\' changed.', emails, adminEmails)) {
                                 return res.status(HttpStatus.OK).json(event);
                             } else {
-                                // what to do? update went fine, but fails at sending emails
-                                return res.status(HttpStatus.OK).json(event);
+                                return res.status(HttpStatus.OK).json({
+                                    value: event,
+                                    message: 'Email service couldn\'t send emails.'
+                                });
                             }
                         }).catch(err => {
-                            // what to do? update went fine, but fails at user get
-                            return res.status(HttpStatus.OK).json(event);
+                            return res.status(HttpStatus.OK).json({
+                                value: event,
+                                message: 'Unable to get event participants.'
+                            });
                         });
                     }).catch(err => {
-                        // what to do? update went fine, but fails at user get
-                        return res.status(HttpStatus.OK).json(event);
+                        return res.status(HttpStatus.OK).json({
+                            value: event,
+                            message: 'Unable to get event participants.'
+                        });
                     });
                 }).catch(err => {
-                    // what to do? update went fine, but fails at invite get
-                    return res.status(HttpStatus.OK).json(event);
+                    return res.status(HttpStatus.OK).json({
+                        value: event,
+                        message: 'Unable to get event invitations.'
+                    });
                 });
             } else {
                 return res.status(HttpStatus.NOT_FOUND).json({
@@ -194,10 +207,12 @@ const update = (req, res) => {
                 message: errorMessage
             });
         });
+
 };
 
 //Remove only sets the active field to false, the event stays in the database
 const remove = (req, res) => {
+
     const eventId = req.params.id;
     const user = req.decoded;
 
@@ -222,25 +237,32 @@ const remove = (req, res) => {
                         // the idea at the moment is to include all admins in the mail as cc
                         User.find({ companyID: user.companyID, accessType: { $in: [UserTypeEnum['Admin'], UserTypeEnum['Super-Admin']] } }, { email: 1 }).then(adminUsers => {
                             const adminEmails = adminUsers.map(adminUser => adminUser.email);
-                            if (emailUtil.sendEmail(`${event.name} - Cancelled`, `Event '${event.name}' has been cancelled.`, emails, adminEmails)) {
+                            if (EmailUtil.sendEmail(`${event.name} - Cancelled`, `Event '${event.name}' has been cancelled.`, emails, adminEmails)) {
                                 return res.status(HttpStatus.OK).json(event);
                             } else {
-                                // what to do? update went fine, but fails at sending emails
-                                return res.status(HttpStatus.OK).json(event);
+                                return res.status(HttpStatus.OK).json({
+                                    value: event,
+                                    message: 'Email service couldn\'t send emails.'
+                                });
                             }
                         }).catch(err => {
-                            // what to do? update went fine, but fails at user get
-                            return res.status(HttpStatus.OK).json(event);
+                            return res.status(HttpStatus.OK).json({
+                                value: event,
+                                message: 'Unable to get event participants.'
+                            });
                         });
                     }).catch(err => {
-                        // what to do? update went fine, but fails at user get
-                        return res.status(HttpStatus.OK).json(event);
+                        return res.status(HttpStatus.OK).json({
+                            value: event,
+                            message: 'Unable to get event participants.'
+                        });
                     });
                 }).catch(err => {
-                    // what to do? update went fine, but fails at invite get
-                    return res.status(HttpStatus.OK).json(event);
+                    return res.status(HttpStatus.OK).json({
+                        value: event,
+                        message: 'Unable to get event invitations.'
+                    });
                 });
-                return res.status(HttpStatus.OK).json(event);
             } else {
                 return res.status(HttpStatus.NOT_FOUND).json({
                     message: 'Event not found.'
@@ -251,6 +273,7 @@ const remove = (req, res) => {
                 message: 'Internal server error.'
             });
         });
+
 };
 
 module.exports = {
