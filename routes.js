@@ -64,16 +64,16 @@ router.get('/response-type', auth.authUser, (req, res) => responseTypeController
 router.get('/response-type/:value', auth.authUser, (req, res) => responseTypeController.getByValue(req, res));
 
 // EventGroup routes
-router.get('/event-group', auth.authUser, (req, res) => eventGropController.retrieveAll(req, res))
-router.post('/event-group', auth.authAdmin, (req, res) => eventGropController.create(req, res))
-router.get('/event-group/:id', auth.authUser, (req, res) => eventGropController.retrieveById(req, res))
-router.patch('/event-group', auth.authAdmin, (req, res) => eventGropController.update(req, res))
-router.delete('/event-group/:id', auth.authAdmin, (req, res) => eventGropController.remove(req, res))
+router.get('/event-group', auth.authUser, (req, res) => eventGropController.retrieveAll(req, res));
+router.post('/event-group', auth.authAdmin, (req, res) => eventGropController.create(req, res));
+router.get('/event-group/:id', auth.authUser, (req, res) => eventGropController.retrieveById(req, res));
+router.patch('/event-group', auth.authAdmin, (req, res) => eventGropController.update(req, res));
+router.delete('/event-group/:id', auth.authAdmin, (req, res) => eventGropController.remove(req, res));
 
 // Notification routes
 router.post('/notification', auth.authAdmin, (req, res) => notificationController.create(req, res));
-router.get('/notification/:read', auth.authUser, (req, res) => notificationController.getAll(req, res));
-router.get('/notification/get-by-id/:id', auth.authUser, (req, res) => notificationController.getById(req, res));
+router.get('/notification/all/:read', auth.authUser, (req, res) => notificationController.getAll(req, res));
+router.get('/notification/:id', auth.authUser, (req, res) => notificationController.getById(req, res));
 router.delete('/notification/:id', auth.authAdmin, (req, res) => notificationController.deleteById(req, res));
 
 //Exporting the router
