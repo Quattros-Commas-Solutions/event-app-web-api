@@ -19,12 +19,12 @@ router.get('/', auth.authUser, (req, res) => {
 });
 
 // User routes 
-// TODO: Add auth middleware when JWT is finished
-router.get('/user/', auth.authAdmin, (req, res) => userController.retrieveAll(req, res));
+router.get('/user/', auth.authAdmin, (req, res) => userController.getAll(req, res));
 router.post('/user/', auth.authAdmin, (req, res) => userController.create(req, res));
-router.get('/user/:id', auth.authAdmin, (req, res) => userController.retrieveById(req, res));
-router.patch('/user/update', auth.authUser, (req, res) => userController.update(req, res));
-router.delete('/user/:id', auth.authAdmin, (req, res) => userController.remove(req, res));
+router.get('/user/:id', auth.authAdmin, (req, res) => userController.getById(req, res));
+router.patch('/user/', auth.authUser, (req, res) => userController.changePersonalData(req, res));
+router.patch('/user/changePassword', auth.authUser, (req, res) => userController.changePassword(req, res));
+router.patch('/user/:id', auth.authAdmin, (req, res) => userController.changeActiveStatus(req, res));
 router.post('/user/login', (req, res) => userController.login(req, res));
 router.get('/user/token', auth.authUser, (req, res) => userController.token(req, res));
 
