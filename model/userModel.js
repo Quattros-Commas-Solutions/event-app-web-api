@@ -42,6 +42,20 @@ const userSchema = Mongoose.Schema({
         type: String,
         default: '',
         trim: true
+    },
+    notifications: {
+        type: [new Mongoose.Schema({
+            notificationID: {
+                type: Mongoose.Types.ObjectId,
+                ref: 'notifications',
+                required: [true, 'You must provide a notification ID']
+            },
+            read: {
+                type: Boolean,
+                default: false,
+            }
+        })],
+        default: []
     }
 });
 

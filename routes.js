@@ -9,6 +9,7 @@ const companyController = require('./controller/companyController');
 const eventQuestionController = require('./controller/eventQuestionController');
 const responseTypeController = require('./controller/responseTypeController');
 const eventGropController = require('./controller/eventGroupController');
+const notificationController = require('./controller/notificationController');
 
 //Setting the default route
 router.get('/', auth.authUser, (req, res) => {
@@ -27,6 +28,8 @@ router.patch('/user/changePassword', auth.authUser, (req, res) => userController
 router.patch('/user/:id', auth.authAdmin, (req, res) => userController.changeActiveStatus(req, res));
 router.post('/user/login', (req, res) => userController.login(req, res));
 router.get('/user/token', auth.authUser, (req, res) => userController.token(req, res));
+router.patch('/user/notification/:id', auth.authUser, (req, res) => userController.markNotificationAsRead(req, res));
+router.delete('/user/notification/:id', auth.authUser, (req, res) => userController.deleteNotification(req, res));
 
 //Event routes
 router.get('/event', auth.authUser, (req, res) => eventController.getAll(req, res));
@@ -72,6 +75,11 @@ router.get('/event-group/:id', auth.authUser, (req, res) => eventGropController.
 router.patch('/event-group', auth.authAdmin, (req, res) => eventGropController.update(req, res));
 router.delete('/event-group/:id', auth.authAdmin, (req, res) => eventGropController.remove(req, res));
 
+// Notification routes
+router.post('/notification', auth.authAdmin, (req, res) => notificationController.create(req, res));
+router.get('/notification/all/:read', auth.authUser, (req, res) => notificationController.getAll(req, res));
+router.get('/notification/:id', auth.authUser, (req, res) => notificationController.getById(req, res));
+router.delete('/notification/:id', auth.authAdmin, (req, res) => notificationController.deleteById(req, res));
 
 //Exporting the router
 module.exports = router;

@@ -1,8 +1,8 @@
-const SHA256 = require('crypto-js/sha256');
 const jwt = require('jsonwebtoken');
 const HttpStatus = require('http-status-codes');
-
 const bcrypt = require('bcryptjs');
+const ObjectId = require('mongoose').Types.ObjectId;
+
 const User = require('../model/userModel');
 const AppConfig = require('../config').AppConfig;
 const ValidationUtil = require('../util/validationUtil');
@@ -68,7 +68,6 @@ const token = (req, res) => {
             if (user) {
                 // Create new token
                 const token = jwt.sign(JSON.stringify(user), AppConfig.SECRET, { expiresIn: AppConfig.TOKEN_LIFESPAN });
-
                 // Update token in the list
                 tokenList[data.refreshToken].token = token;
                 return res.status(HttpStatus.OK).json({ token });
@@ -97,7 +96,9 @@ const create = (req, res) => {
     }
 
     // Check if an user with the provided email exists
-    User.findOne({ email: user.email }).then(obj => {
+    User.findOne({
+        email: user.email
+    }).then(obj => {
         if (!obj) {
             // Generate salt & passwordHash
             let retVal = getPasswordHash(user.passwordHash);
@@ -129,7 +130,12 @@ const create = (req, res) => {
 const getAll = (req, res) => {
     const user = req.decoded;
 
-    User.find({ companyID: user.companyID }, { passwordHash: 0, salt: 0 }).then(users => {
+    User.find({
+        companyID: user.companyID
+    }, {
+        passwordHash: 0,
+        salt: 0
+    }).then(users => {
         if (users) {
             return res.status(HttpStatus.OK).json(users);
         } else {
@@ -250,8 +256,7 @@ const changeActiveStatus = (req, res) => {
             user.passwordHash = null;
             user.salt = null;
             return res.status(HttpStatus.OK).json(user);
-        }
-        else {
+        } else {
             return res.status(HttpStatus.NOT_FOUND).json({
                 message: 'User not found.'
             });
@@ -262,6 +267,99 @@ const changeActiveStatus = (req, res) => {
         });
     });
 };
+
+const markNotificationAsRead = (req, res) => {
+
+    const user = req.decoded;
+    const notificationID = req.params.id;
+
+    if (!user) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+            message: 'Unauthorized access.'
+        });
+    }
+
+    if (!ValidationUtil.isValidObjectId(notificationID)) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            message: 'Bad request. Invalid notification ID.'
+        });
+    }
+
+    User.findOneAndUpdate({
+        _id: user._id,
+        'notifications.notificationID': new ObjectId(notificationID)
+    }, {
+        $set: {
+            'notifications.$.read': true
+        }
+    }, {
+        useFindAndModify: false,
+        new: true,
+        runValidators: true
+    }).then(notificationUser => {
+        if (notificationUser) {
+            // if someone knows a better way to return the updated array element, hmu
+            // TODO: @Dragan the token should be updated as well since the user has changed
+            const notification = notificationUser.notifications.find(notification => notification.notificationID.toString() === notificationID);
+            return res.status(HttpStatus.OK).json(notification);
+        } else {
+            return res.status(HttpStatus.NOT_FOUND).json({
+                message: 'Notification not found.'
+            });
+        }
+    }).catch(err => {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            message: 'Internal server error'
+        });
+    });
+
+}
+
+const deleteNotification = (req, res) => {
+
+    const user = req.decoded;
+    const notificationID = req.params.id;
+
+    if (!user) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+            message: 'Unauthorized access.'
+        });
+    }
+
+    if (!ValidationUtil.isValidObjectId(notificationID)) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            message: 'Bad request. Invalid notification ID.'
+        });
+    }
+
+    User.findOneAndUpdate({
+        _id: user._id, // you can only delete your own
+        'notifications.notificationID': new ObjectId(notificationID)
+    }, {
+        $pull: {
+            notifications: {
+                notificationID: new ObjectId(notificationID)
+            }
+        }
+    }, {
+        useFindAndModify: false,
+        new: true,
+        runValidators: true
+    }).then(notificationUser => {
+        if (notificationUser) {
+            return res.status(HttpStatus.NO_CONTENT).json(true); // since this is a delete, we agreed to return a boolean
+        } else {
+            return res.status(HttpStatus.NOT_FOUND).json({
+                message: 'Notification not found.'
+            });
+        }
+    }).catch(err => {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            message: 'Internal server error'
+        });
+    });
+
+}
 
 
 // ---------------------------------- HELPER FUNCTIONS ----------------------------------
@@ -287,5 +385,7 @@ module.exports = {
     getById,
     changeActiveStatus,
     changePassword,
-    changePersonalData
+    changePersonalData,
+    markNotificationAsRead,
+    deleteNotification
 };
