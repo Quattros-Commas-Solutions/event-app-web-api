@@ -71,6 +71,54 @@ const getAll = (req, res) => {
 
 };
 
+const getAllUnansweredForEvent = (req, res) => {
+
+    const user = req.decoded;
+    const eventQuestionID = req.params.event_id;
+
+    if (!user) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+            message: 'Unauthorized.'
+        });
+    }
+
+    if (!ValidationUtil.isValidObjectId(eventQuestionID)) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            message: 'Bad request'
+        });
+    }
+
+
+    EventQuestion.find({ eventID: new ObjectId(eventQuestionID), companyID: user.companyID, responses: [] }).then(eventQuestions => {
+        return res.status(HttpStatus.OK).json(eventQuestions);
+    }).catch(err => {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            message: 'Internal server error'
+        });
+    });
+
+};
+
+const getAllUnanswered = (req, res) => {
+
+    const user = req.decoded;
+
+    if (!user) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+            message: 'Unauthorized.'
+        });
+    }
+
+    EventQuestion.find({ companyID: user.companyID, responses: [] }).then(eventQuestions => {
+        return res.status(HttpStatus.OK).json(eventQuestions);
+    }).catch(err => {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            message: 'Internal server error'
+        });
+    });
+
+};
+
 const getById = (req, res) => {
 
     const eventQuestionId = req.params.id;
@@ -98,7 +146,7 @@ const getById = (req, res) => {
         });
     });
 
-}
+};
 
 const deleteById = (req, res) => {
 
@@ -128,7 +176,7 @@ const deleteById = (req, res) => {
         });
     });
 
-}
+};
 
 const addResponseToEvent = (req, res) => {
 
@@ -200,7 +248,7 @@ const update = (req, res) => {
         });
     });
 
-}
+};
 
 // only Super-Admin/Admin level users will be able to delete responses
 const deleteResponse = (req, res) => {
@@ -237,6 +285,8 @@ module.exports = {
     create,
     getById,
     getAll,
+    getAllUnansweredForEvent, 
+    getAllUnanswered, 
     deleteById,
     addResponseToEvent,
     update,

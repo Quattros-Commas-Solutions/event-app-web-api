@@ -4,7 +4,6 @@ const HttpStatus = require('http-status-codes');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 const ValidationUtil = require('../util/validationUtil');
-const StatusEnum = require('../model/enums').StatusEnum;
 const ResponseTypeEnum = require('../model/enums').ResponseTypeEnum;
 
 const create = (req, res) => {
@@ -13,7 +12,6 @@ const create = (req, res) => {
     //Only admins can create event objects
     if (!user || !ValidationUtil.isUserAdmin(user.accessType)) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
             message: 'Unauhorized.'
         })
     }
@@ -26,7 +24,6 @@ const create = (req, res) => {
     }).catch(err => {
         const errorMessage = ValidationUtil.buildErrorMessage(err, 'create', 'event');
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: 'Error',
             message: errorMessage
         });
     });
@@ -39,7 +36,6 @@ const getAll = (req, res) => {
     //user must be valid to retrieve any events
     if (!user) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
             message: 'Unauthorized access.'
         });
     }
@@ -52,13 +48,11 @@ const getAll = (req, res) => {
                 return res.status(HttpStatus.OK).json(events);
             } else {
                 return res.status(HttpStatus.NOT_FOUND).json({
-                    status: StatusEnum['ERROR'],
                     message: 'Events not found.'
                 })
             }
         }).catch(err => {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                status: StatusEnum['ERROR'],
                 message: 'Internal server error.'
             });
         });
@@ -68,7 +62,6 @@ const getAll = (req, res) => {
         Invite.find({ userID: new ObjectId(user._id) }).then(invites => {
             if (!invites) {
                 return res.status(HttpStatus.NOT_FOUND).json({
-                    status: StatusEnum['ERROR'],
                     message: 'No events for user.'
                 });
             } else {
@@ -85,13 +78,11 @@ const getAll = (req, res) => {
                         return res.status(HttpStatus.OK).json(events);
                     } else {
                         return res.status(HttpStatus.NOT_FOUND).json({
-                            status: StatusEnum['ERROR'],
                             message: 'No events for user.'
                         });
                     }
                 }).catch(err => {
                     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                        status: StatusEnum['ERROR'],
                         message: 'Internal server error'
                     });
                 })
@@ -106,7 +97,6 @@ const getById = (req, res) => {
 
     if (!eventId || !user) {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
             message: 'Bad request'
         });
     }
@@ -127,26 +117,22 @@ const getById = (req, res) => {
                             return res.status(HttpStatus.OK).json(event);
                         } else {
                             return res.status(HttpStatus.NOT_FOUND).json({
-                                status: StatusEnum['ERROR'],
                                 message: 'Event not found.'
                             });
                         }
                     }).catch(err => {
                         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                            status: StatusEnum['ERROR'],
                             message: 'Internal server error.'
                         });
                     });
             }
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'Event not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
             message: 'Internal server error.'
         });
     });
@@ -159,7 +145,6 @@ const update = (req, res) => {
     //Only admins can update event objects
     if (!user || !ValidationUtil.isUserAdmin(user.accessType)) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
             message: 'Unauhorized.'
         })
     }
@@ -170,14 +155,12 @@ const update = (req, res) => {
                 return res.status(HttpStatus.OK).json(event);
             } else {
                 return res.status(HttpStatus.NOT_FOUND).json({
-                    status: StatusEnum['ERROR'],
                     message: 'Event not found.'
                 });
             }
         }).catch(err => {
             const errorMessage = ValidationUtil.buildErrorMessage(err, 'update', 'event');
             return res.status(HttpStatus.BAD_REQUEST).json({
-                status: StatusEnum['ERROR'],
                 message: errorMessage
             });
         });
@@ -191,7 +174,6 @@ const remove = (req, res) => {
     //Only admins can remove event objects
     if (!user || !ValidationUtil.isUserAdmin(user.accessType)) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
             message: 'Unauhorized.'
         })
     }
@@ -203,13 +185,11 @@ const remove = (req, res) => {
                 return res.status(HttpStatus.OK).json(event);
             } else {
                 return res.status(HttpStatus.NOT_FOUND).json({
-                    status: StatusEnum['ERROR'],
                     message: 'Event not found.'
                 });
             }
         }).catch(err => {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                status: StatusEnum['ERROR'],
                 message: 'Internal server error.'
             });
         });
