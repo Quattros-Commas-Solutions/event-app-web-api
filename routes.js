@@ -57,8 +57,8 @@ router.post('/event-question/response', auth.authUser, (req, res) => eventQuesti
 router.delete('/event-question/response/:eventQuestionId/:responseId', auth.authAdmin, (req, res) => eventQuestionController.deleteResponse(req, res));
 
 // ResponseType routes
-router.get('/response-type', auth.authAdmin, (req, res) => responseTypeController.getAll(req, res));
-router.get('/response-type/:value', auth.authAdmin, (req, res) => responseTypeController.getByValue(req, res));
+router.get('/response-type', auth.authUser, (req, res) => responseTypeController.getAll(req, res));
+router.get('/response-type/:value', auth.authUser, (req, res) => responseTypeController.getByValue(req, res));
 
 // EventGroup routes
 router.get('/event-group', auth.authUser, (req, res) => eventGropController.retrieveAll(req, res))

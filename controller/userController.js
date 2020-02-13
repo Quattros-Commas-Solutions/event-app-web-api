@@ -17,7 +17,8 @@ const tokenList = {}
 // ================================== CRUD FUNCTIONS ==================================
 
 const login = (req, res) => {
-    if (!req.body || !req.body.email) {
+
+    if (!req.body.email) {
         return res.status(HttpStatus.BAD_REQUEST).json({ message: 'No email provided' });
     }
 
@@ -167,10 +168,6 @@ const getById = (req, res) => {
 const changePersonalData = (req, res) => {
     const loggedUser = req.decoded;
 
-    if (!ValidationUtil.isValidObjectId(loggedUser._id)) {
-        return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid ID' });
-    }
-
     let user = {};
     // Update fields
     if (req.body.name)
@@ -202,10 +199,6 @@ const changePersonalData = (req, res) => {
 
 const changePassword = (req, res) => {
     const loggedUser = req.decoded;
-
-    if (!ValidationUtil.isValidObjectId(loggedUser._id)) {
-        return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid ID' });
-    }
 
     let user = {};
     if (req.body.passwordHash) {
@@ -239,12 +232,12 @@ const changeActiveStatus = (req, res) => {
         return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid ID' });
     }
 
-    if (!req.params.body || !req.params.status) {
-        return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid status' });
+    if (!req.body.status) {
+        return res.status(HttpStatus.BAD_REQUEST).json({ message: 'No status provided' });
     }
 
     const userId = req.params.id;
-    const status = req.params.status;
+    const status = req.body.status;
     const loggedUser = req.decoded;
 
     User.findOneAndUpdate({ _id: userId, companyID: loggedUser.companyID }, { active: status }, { useFindAndModify: false, new: true, runValidators: true }).then(user => {
