@@ -40,15 +40,18 @@ router.get('/user-type', auth.authUser, (req, res) => userTypeController.getAll(
 router.get('/user-type/:id', auth.authUser, (req, res) => userTypeController.getById(req, res));
 
 // Company routes
-router.post('/company', auth.authAdmin, (req, res) => companyController.create(req, res));
-router.get('/company', auth.authAdmin, (req, res) => companyController.getAll(req, res));
-router.get('/company/:id', auth.authAdmin, (req, res) => companyController.getById(req, res));
+router.post('/company', (req, res) => companyController.create(req, res));
+router.get('/company', (req, res) => companyController.getAll(req, res));
+router.get('/company/:id', auth.authUser, (req, res) => companyController.getById(req, res));
 router.patch('/company', auth.authAdmin, (req, res) => companyController.update(req, res));
-router.delete('/company/:id', auth.authAdmin, (req, res) => companyController.deleteCompany(req, res));
-router.get('/company/get-by-name/:name', auth.authAdmin, (req, res) => companyController.getByNameContains(req, res));
+router.delete('/company/:id', (req, res) => companyController.deleteCompany(req, res));
+router.get('/company/get-by-name/:name', (req, res) => companyController.getByNameContains(req, res));
 
 // EventQuestion routes 
 router.post('/event-question', auth.authUser, (req, res) => eventQuestionController.create(req, res));
+// this is kinda dumb, but the way it was set up before you were getting every event question for every event 
+// in the company, it is only natural that you would get only the ones for a specific event
+router.get('/event-question/all/:event_id', auth.authUser, (req, res) => eventQuestionController.getAll(req, res));
 router.get('/event-question', auth.authUser, (req, res) => eventQuestionController.getAll(req, res));
 router.get('/event-question/unanswered', auth.authAdmin, (req, res) => eventQuestionController.getAllUnanswered(req, res));
 router.get('/event-question/unanswered/:event_id', auth.authAdmin, (req, res) => eventQuestionController.getAllUnansweredForEvent(req, res));
@@ -56,7 +59,7 @@ router.get('/event-question/:id', auth.authAdmin, (req, res) => eventQuestionCon
 router.delete('/event-question/:id', auth.authAdmin, (req, res) => eventQuestionController.deleteById(req, res));
 router.patch('/event-question', auth.authUser, (req, res) => eventQuestionController.update(req, res));
 router.post('/event-question/response', auth.authUser, (req, res) => eventQuestionController.addResponseToEvent(req, res));
-router.delete('/event-question/response/:eventQuestionId/:responseId', auth.authAdmin, (req, res) => eventQuestionController.deleteResponse(req, res));
+router.delete('/event-question/response/:eventQuestionID/:responseID', auth.authAdmin, (req, res) => eventQuestionController.deleteResponse(req, res));
 
 // ResponseType routes
 router.get('/response-type', auth.authUser, (req, res) => responseTypeController.getAll(req, res));
