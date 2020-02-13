@@ -17,6 +17,11 @@ const tokenList = {}
 // ================================== CRUD FUNCTIONS ==================================
 
 const login = (req, res) => {
+
+    if (!req.body.email) {
+        return res.status(HttpStatus.BAD_REQUEST).json({ message: 'No email provided' });
+    }
+
     User.findOne({
         email: req.body.email,
         active: true
@@ -33,31 +38,20 @@ const login = (req, res) => {
                 user.passwordHash = null;
                 user.salt = null;
 
-                // Generate response
-                const response = {
-                    auth: true,
-                    status: 'Logged in',
-                    user: user,
-                    token: token
-                };
-
-                return res.status(HttpStatus.OK).json(response);
+                return res.status(HttpStatus.OK).json({ user, token });
             } else {
                 return res.status(HttpStatus.FORBIDDEN).json({
-                    status: StatusEnum['ERROR'],
                     message: 'Incorrect email or password'
                 });
             }
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'Please provide a valid email and password.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
-            message: 'Internal server error.'
+            message: 'Internal server error'
         });
     });
 };
@@ -66,39 +60,29 @@ const login = (req, res) => {
 // For mobile apps users ususally login only once so JWT shouldn't have any expiration date
 // However we should be able to revoke a JWT (e.g. users phone has been stolen)
 const token = (req, res) => {
-    const data = req.body;
+    const loggedUser = req.decoded;
+
     // If refresh token exists
-    if ((data.refreshToken) && (data.refreshToken in tokenList)) {
-        const user = {
-            email: data.email,
-            active: true
-        }
-        User.findOne(user).then(user => {
+    if ((loggedUser.refreshToken) && (loggedUser.refreshToken in tokenList)) {
+        User.findOne({ email: loggedUser.email, active: true }).then(user => {
             if (user) {
                 // Create new token
-                const token = jwt.sign(JSON.stringify(user), AppConfig.SECRET, {
-                    expiresIn: AppConfig.TOKEN_LIFESPAN
-                });
-                const response = {
-                    token: token
-                };
+                const token = jwt.sign(JSON.stringify(user), AppConfig.SECRET, { expiresIn: AppConfig.TOKEN_LIFESPAN });
                 // Update token in the list
                 tokenList[data.refreshToken].token = token;
-                return res.status(HttpStatus.OK).json(response);
+                return res.status(HttpStatus.OK).json({ token });
             } else {
                 return res.status(HttpStatus.NOT_FOUND).json({
-                    status: StatusEnum['ERROR'],
                     message: 'User not found.'
                 });
             }
         }).catch(err => {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                status: StatusEnum['ERROR'],
-                message: 'Internal server error.'
+                message: 'Internal server error'
             });
         });
     }
-}
+};
 
 const create = (req, res) => {
     const user = new User(req.body);
@@ -107,11 +91,9 @@ const create = (req, res) => {
     // Logged user can only create new users within his company 
     if (loggedUser.companyID != user.companyID) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: StatusEnum['ERROR'],
             message: 'Companies don\'t match'
         });
     }
-
 
     // Check if an user with the provided email exists
     User.findOne({
@@ -127,22 +109,25 @@ const create = (req, res) => {
                 user.passwordHash = null;
                 user.salt = null;
                 return res.status(HttpStatus.CREATED).json(user);
+            }).catch(err => {
+                const errorMessage = ValidationUtil.buildErrorMessage(err, 'create', 'user');
+                return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                    message: errorMessage
+                });
             });
         } else {
             return res.status(HttpStatus.BAD_REQUEST).json({
-                status: StatusEnum['ERROR'],
                 message: 'User with provided email already exists!'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
             message: ValidationUtil.buildErrorMessage(err, 'create', 'user')
         });
     });
 };
 
-const retrieveAll = (req, res) => {
+const getAll = (req, res) => {
     const user = req.decoded;
 
     User.find({
@@ -155,143 +140,130 @@ const retrieveAll = (req, res) => {
             return res.status(HttpStatus.OK).json(users);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'Users not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
-            message: ValidationUtil.buildErrorMessage(err, 'retrieveAll', 'user')
+            message: 'Internal server error'
         });
     });
 };
 
-const retrieveById = (req, res) => {
-    const userId = req.params.id;
-    const loggedUser = req.decoded;
-
-    if (userId.length != AppConfig.OBJECT_ID_LEN) {
+const getById = (req, res) => {
+    if (!req.params.id || ValidationUtil.isValidObjectId(req.params.id)) {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
             message: 'Invalid ID'
         });
     }
 
-    User.findById(userId, {
-        passwordHash: 0,
-        salt: 0
-    }).then(user => {
+    const userId = req.params.id;
+    const loggedUser = req.decoded;
+
+    User.findById(userId, { passwordHash: 0, salt: 0 }).then(user => {
         // Client can only retrieve users within his company
         if (user && user.companyID === loggedUser.companyID) {
             return res.status(HttpStatus.OK).json(user);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'User not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
             message: ValidationUtil.buildErrorMessage(err, 'retrieveById', 'user')
         });
     });
 };
 
-const update = (req, res) => {
+const changePersonalData = (req, res) => {
     const loggedUser = req.decoded;
 
-    if (!ValidationUtil.isValidObjectId(loggedUser._id)) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
-            message: 'Invalid ID'
-        });
-    }
-    user = {};
-    // TODO: 
-    // Make 4 functions from this one:
-    //  1. updateFields() (everything except password & active flag)
-    //  2. updatePassword()
-    //  3. blockUser (basically remove)
-    //  3. activateUser
+    let user = {};
     // Update fields
     if (req.body.name)
         user.name = req.body.name;
     if (req.body.surname)
         user.surname = req.body.surname;
-    if (req.body.email)
-        user.email = req.body.email;
     if (req.body.dateOfBirth)
         user.dateOfBirth = req.body.dateOfBirth;
-    if (req.body.active)
-        user.active = req.body.active;
+
+    User.findOneAndUpdate({ _id: loggedUser._id }, user, { useFindAndModify: false, new: true, runValidators: true }).then(newUser => {
+        if (newUser) {
+            // Generate new JWT
+            const token = jwt.sign(JSON.stringify(newUser), AppConfig.SECRET);
+            newUser.passwordHash = null;
+            newUser.salt = null;
+
+            return res.status(HttpStatus.OK).json({ token, user: newUser });
+        } else {
+            return res.status(HttpStatus.NOT_FOUND).json({
+                message: 'User not found.'
+            });
+        }
+    }).catch(err => {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            message: 'Internal server error'
+        });
+    });
+};
+
+const changePassword = (req, res) => {
+    const loggedUser = req.decoded;
+
+    let user = {};
     if (req.body.passwordHash) {
         let retVal = getPasswordHash(req.body.passwordHash);
         user.salt = retVal.salt;
         user.passwordHash = retVal.passwordHash;
     }
 
-    User.findOneAndUpdate({
-        _id: userId
-    }, user, {
-        useFindAndModify: false,
-        new: true,
-        runValidators: true
-    }).then(newUser => {
+    User.findOneAndUpdate({ _id: loggedUser._id }, user, { useFindAndModify: false, new: true, runValidators: true }).then(newUser => {
         if (newUser) {
+            // Generate new JWT
+            const token = jwt.sign(JSON.stringify(newUser), AppConfig.SECRET);
             newUser.passwordHash = null;
             newUser.salt = null;
-            return res.status(HttpStatus.OK).json(newUser);
+
+            return res.status(HttpStatus.OK).json({ token, user: newUser });
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'User not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
-            message: ValidationUtil.buildErrorMessage(err, 'update', 'user')
+            message: 'Internal server error'
         });
     });
 };
 
-const remove = (req, res) => {
-    const userId = req.params.id;
-    const loggedUser = req.decoded;
-
-    if (userId.length != AppConfig.OBJECT_ID_LEN) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
-            message: 'Invalid ID'
-        });
+const changeActiveStatus = (req, res) => {
+    if (!req.params.id || !ValidationUtil.isValidObjectId(req.params.id)) {
+        return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid ID' });
     }
 
-    User.findOneAndUpdate({
-        _id: userId,
-        companyID: loggedUser.companyID
-    }, {
-        active: 0
-    }, {
-        useFindAndModify: false,
-        new: true,
-        runValidators: true
-    }).then(user => {
+    if (!req.body.status) {
+        return res.status(HttpStatus.BAD_REQUEST).json({ message: 'No status provided' });
+    }
+
+    const userId = req.params.id;
+    const status = req.body.status;
+    const loggedUser = req.decoded;
+
+    User.findOneAndUpdate({ _id: userId, companyID: loggedUser.companyID }, { active: status }, { useFindAndModify: false, new: true, runValidators: true }).then(user => {
         if (user) {
             user.passwordHash = null;
             user.salt = null;
             return res.status(HttpStatus.OK).json(user);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'User not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
-            message: ValidationUtil.buildErrorMessage(err, 'update', 'user')
+            message: 'Internal server error'
         });
     });
 };
@@ -389,6 +361,7 @@ const deleteNotification = (req, res) => {
 
 }
 
+
 // ---------------------------------- HELPER FUNCTIONS ----------------------------------
 
 function getPasswordHash(password) {
@@ -408,10 +381,11 @@ module.exports = {
     login,
     token,
     create,
-    retrieveAll,
-    retrieveById,
-    update,
-    remove,
+    getAll,
+    getById,
+    changeActiveStatus,
+    changePassword,
+    changePersonalData,
     markNotificationAsRead,
     deleteNotification
 };

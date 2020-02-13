@@ -15,6 +15,7 @@ const userSchema = Mongoose.Schema({
     },
     email: {
         type: String,
+        immutable: true,
         required: true
     },
     gender: String,

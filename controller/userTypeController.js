@@ -13,7 +13,6 @@ const create = (req, res) => {
     }).catch(err => {
         const errorMessage = ValidationUtil.buildErrorMessage(err, 'create', 'user type');
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
             message: errorMessage
         });
     })
@@ -25,7 +24,6 @@ const getAll = (req, res) => {
 
     if (!user) {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
             message: 'Bad request.'
         });
     }
@@ -35,13 +33,11 @@ const getAll = (req, res) => {
             return res.status(HttpStatus.OK).json(userTypes);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'User types not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
             message: 'Internal server error.'
         });
     });
@@ -55,7 +51,6 @@ const getById = (req, res) => {
 
     if (!user) {
         return res.status(HttpStatus.BAD_REQUEST).json({
-            status: StatusEnum['ERROR'],
             message: 'Bad request.'
         });
     }
@@ -65,13 +60,11 @@ const getById = (req, res) => {
             return res.status(HttpStatus.OK).json(userType);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'User type not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
             message: 'Internal server error.'
         });
     });
@@ -90,13 +83,11 @@ const update = (req, res) => {
                     'update',
                     'user type');
                 return res.status(HttpStatus.BAD_REQUEST).json({
-                    status: StatusEnum['ERROR'],
                     message: errorMessage
                 });
             })
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'User type not found.'
             });
         }
@@ -112,13 +103,11 @@ const remove = (req, res) => {
             return res.status(HttpStatus.OK).json(userType);
         } else {
             return res.status(HttpStatus.NOT_FOUND).json({
-                status: StatusEnum['ERROR'],
                 message: 'User type not found.'
             });
         }
     }).catch(err => {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            status: StatusEnum['ERROR'],
             message: 'Internal server error.'
         });
     })
